@@ -68,6 +68,13 @@ export async function GET(request) {
 
   const user = await userResponse.json();
 
+  const hasTrainingAccess = Boolean(
+    user.userStaffPositions?.some(
+      (position) =>
+        position?.staffPosition?.departmentTeam?.department?.id === "TRA"
+    )
+  );
+
   const session = {
     id: user.id,
     vid: String(user.id),
@@ -77,6 +84,7 @@ export async function GET(request) {
     atcRating: user.rating?.atcRating?.shortName || null,
     pilotRating: user.rating?.pilotRating?.shortName || null,
     isStaff: Boolean(user.isStaff),
+    hasTrainingAccess,
     createdAt: new Date().toISOString(),
   };
 
