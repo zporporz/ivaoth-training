@@ -2,38 +2,14 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { getClientSession } from "../lib/authSession";
 import UserBadge from "./UserBadge";
-
-function decodeSession(value) {
-  try {
-    return JSON.parse(atob(value.replace(/-/g, "+").replace(/_/g, "/")));
-  } catch {
-    return null;
-  }
-}
-
-function getCookie(name) {
-  if (typeof document === "undefined") return null;
-
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-
-  if (parts.length === 2) {
-    return parts.pop().split(";").shift();
-  }
-
-  return null;
-}
 
 export default function Navbar() {
   const [session, setSession] = useState(null);
 
   useEffect(() => {
-    const cookie = getCookie("ivao_session");
-
-    if (cookie) {
-      setSession(decodeSession(cookie));
-    }
+    setSession(getClientSession());
   }, []);
 
   return (
@@ -66,19 +42,25 @@ export default function Navbar() {
           Portal
         </a>
 
-        <a
-          href="/staff"
-          className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]"
-        >
-          Staff Console
-        </a>
+        {session?.hasTrainingAccess && (
+          <a
+            href="/staff"
+            className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]"
+          >
+            Staff Console
+          </a>
+        )}
       </div>
 
       {session ? (
         <div className="flex items-center gap-3">
           <UserBadge
             name={session.name}
-            role={`${session.atcRating || "Member"} · ${session.vid}`}
+            role={
+              session.hasTrainingAccess
+                ? `Training Staff · ${session.vid}`
+                : `${session.atcRating || "Member"} · ${session.vid}`
+            }
           />
 
           <a
