@@ -1,19 +1,40 @@
+"use client";
+
 import Image from "next/image";
-import { cookies } from "next/headers";
+import { useEffect, useState } from "react";
 import UserBadge from "./UserBadge";
 
 function decodeSession(value) {
   try {
-    return JSON.parse(Buffer.from(value, "base64url").toString("utf-8"));
+    return JSON.parse(atob(value.replace(/-/g, "+").replace(/_/g, "/")));
   } catch {
     return null;
   }
 }
 
-export default async function Navbar() {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("ivao_session")?.value;
-  const session = sessionCookie ? decodeSession(sessionCookie) : null;
+function getCookie(name) {
+  if (typeof document === "undefined") return null;
+
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+
+  if (parts.length === 2) {
+    return parts.pop().split(";").shift();
+  }
+
+  return null;
+}
+
+export default function Navbar() {
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    const cookie = getCookie("ivao_session");
+
+    if (cookie) {
+      setSession(decodeSession(cookie));
+    }
+  }, []);
 
   return (
     <nav className="mx-auto flex max-w-[1480px] items-center justify-between rounded-[28px] border border-[#ececea] bg-white/70 px-5 py-4 shadow-sm backdrop-blur backdrop-saturate-150">
