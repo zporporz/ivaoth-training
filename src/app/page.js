@@ -10,7 +10,6 @@ import UpNext from "../components/UpNext";
 
 import programs from "../data/programs";
 import calendarDays from "../data/calendarDays";
-import upNext from "../data/upNext";
 import { db } from "../lib/firebase";
 
 function buildCalendarDaysFromSessions(sessions) {
@@ -22,6 +21,23 @@ function buildCalendarDaysFromSessions(sessions) {
     ["24", "", "", ""], ["25", "", "", ""], ["26", "", "", ""], ["27", "", "", ""], ["28", "", "", ""], ["29", "", "", ""], ["30", "", "", ""],
   ];
 
+function buildUpNextFromSessions(sessions) {
+  return sessions.map((session) => {
+    const day = session.date?.split("-")[2]?.replace(/^0/, "") || "-";
+
+    const program = programs.find((p) => p.code === session.program);
+
+    return {
+      day,
+      type: session.program,
+      pos: session.position,
+      title: `${session.type} · ${session.topic}`,
+      name: session.trainee,
+      color: program?.color || "#0a0a0a",
+      mine: false,
+    };
+  });
+}  
   sessions.forEach((session) => {
     const day = session.date?.split("-")[2]?.replace(/^0/, "");
     const index = baseDays.findIndex((item) => item[0] === day);
@@ -52,6 +68,7 @@ function buildCalendarDaysFromSessions(sessions) {
 export default function Home() {
   const [dbSessions, setDbSessions] = useState([]);
   const liveCalendarDays = buildCalendarDaysFromSessions(dbSessions);
+  const liveUpNext = buildUpNextFromSessions(dbSessions);
 
   useEffect(() => {
     async function loadSessions() {
@@ -163,7 +180,7 @@ export default function Home() {
         <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
           <TrainingCalendar calendarDays={liveCalendarDays} programs={programs} />
 
-          <UpNext upNext={upNext} />
+          <UpNext upNext={liveUpNext} />
         </div>
       </section>
     </main>
