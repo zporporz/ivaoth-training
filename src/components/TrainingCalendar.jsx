@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Card from "./ui/Card";
 import SessionDetailModal from "./SessionDetailModal";
+import { getClientSession } from "../lib/authSession";
 
 const monthNames = [
   "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
@@ -103,6 +104,17 @@ export default function TrainingCalendar({ sessions, programs }) {
   const grid = buildMonthGrid(cursor);
   const todayKey = toDateKey(new Date());
 
+  function handleSessionClick(session) {
+    const loginSession = getClientSession();
+
+    if (!loginSession) {
+      window.location.href = "/api/auth/login";
+      return;
+    }
+
+    setSelectedSession(session);
+  }
+
   function moveMonth(step) {
     setCursor((prev) => {
       const next = new Date(prev);
@@ -194,7 +206,7 @@ export default function TrainingCalendar({ sessions, programs }) {
                       key={session.id}
                       session={session}
                       programs={programs}
-                      onClick={setSelectedSession}
+                      onClick={handleSessionClick}
                     />
                   ))}
 
