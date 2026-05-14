@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Card from "./ui/Card";
 import SessionDetailModal from "./SessionDetailModal";
+import LoginRequiredModal from "./LoginRequiredModal";
 import { getClientSession } from "../lib/authSession";
 
 const monthNames = [
@@ -100,6 +101,7 @@ function SessionChip({ session, programs, onClick }) {
 export default function TrainingCalendar({ sessions, programs }) {
   const [cursor, setCursor] = useState(new Date());
   const [selectedSession, setSelectedSession] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const grid = buildMonthGrid(cursor);
   const todayKey = toDateKey(new Date());
@@ -108,7 +110,7 @@ export default function TrainingCalendar({ sessions, programs }) {
     const loginSession = getClientSession();
 
     if (!loginSession) {
-      window.location.href = "/api/auth/login";
+      setShowLoginModal(true);
       return;
     }
 
@@ -226,6 +228,11 @@ export default function TrainingCalendar({ sessions, programs }) {
         session={selectedSession}
         program={selectedProgram}
         onClose={() => setSelectedSession(null)}
+      />
+
+      <LoginRequiredModal
+        open={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
       />
     </>
   );
