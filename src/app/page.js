@@ -6,6 +6,7 @@ import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import Navbar from "../components/Navbar";
 import ProgramCard from "../components/ProgramCard";
 import TrainingCalendar from "../components/TrainingCalendar";
+import TrainingReminder from "../components/TrainingReminder";
 import UpNext from "../components/UpNext";
 
 import programs from "../data/programs";
@@ -51,6 +52,7 @@ export default function Home() {
   return (
     <main className="relative z-10 min-h-screen px-6 py-6">
       <Navbar />
+      <TrainingReminder sessions={dbSessions} />
 
       <section className="mx-auto max-w-[1480px] py-10">
         <div className="mb-7">
