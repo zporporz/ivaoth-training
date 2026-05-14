@@ -28,7 +28,7 @@ export default function UpNext({ upNext }) {
               </div>
 
               <div className="text-xs font-bold italic text-[#8b8a84]">
-                may 1300Z
+                {s.month} {s.time}
               </div>
             </div>
 
