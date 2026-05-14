@@ -10,10 +10,7 @@ export default function UpNext({ upNext }) {
         </div>
 
         <div className="text-sm font-bold text-[#8b8a84]">
-          <span className="text-[#ff5a1f]">
-  {upNext.length}
-</span>{" "}
-sessions
+          <span className="text-[#ff5a1f]">{upNext.length}</span> sessions
         </div>
       </div>
 
@@ -57,6 +54,7 @@ sessions
 
               <div className="mt-1 truncate text-sm font-semibold italic text-[#8b8a84]">
                 {s.name}
+                {s.vid ? ` (${s.vid})` : ""}
               </div>
             </div>
           </div>
