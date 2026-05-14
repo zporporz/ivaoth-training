@@ -1,0 +1,138 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { getClientSession } from "../lib/authSession";
+
+function parseSessionDate(session) {
+  if (!session?.date || !session?.time) return null;
+
+  const cleanTime = session.time.replace("Z", "");
+
+  if (cleanTime.length < 4) return null;
+
+  const hour = cleanTime.slice(0, 2);
+  const minute = cleanTime.slice(2, 4);
+
+  return new Date(`${session.date}T${hour}:${minute}:00Z`);
+}
+
+export default function TrainingReminder({ sessions = [] }) {
+  const [visible, setVisible] = useState(false);
+  const [activeSession, setActiveSession] = useState(null);
+  const [dismissed, setDismissed] = useState([]);
+
+  const loginSession = useMemo(() => getClientSession(), []);
+
+  useEffect(() => {
+    if (!loginSession?.vid) return;
+
+    function checkSessions() {
+      const now = new Date();
+
+      const mySessions = sessions.filter(
+        (s) => String(s.traineeVid) === String(loginSession.vid)
+      );
+
+      for (const session of mySessions) {
+        const sessionDate = parseSessionDate(session);
+
+        if (!sessionDate) continue;
+
+        const diffMs = sessionDate.getTime() - now.getTime();
+        const diffMinutes = Math.floor(diffMs / 60000);
+
+        const reminderKey = `${session.id || session.firestoreId}-30m`;
+
+        if (
+          diffMinutes <= 30 &&
+          diffMinutes >= 0 &&
+          !dismissed.includes(reminderKey)
+        ) {
+          setActiveSession(session);
+          setVisible(true);
+          break;
+        }
+      }
+    }
+
+    checkSessions();
+
+    const interval = setInterval(checkSessions, 60000);
+
+    return () => clearInterval(interval);
+  }, [sessions, loginSession, dismissed]);
+
+  if (!visible || !activeSession) return null;
+
+  const reminderKey = `${activeSession.id || activeSession.firestoreId}-30m`;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="w-full max-w-xl rounded-[2rem] border border-white/20 bg-white p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
+        <div className="text-sm font-black uppercase tracking-[0.2em] text-[#8b8a84]">
+          upcoming training
+        </div>
+
+        <h2 className="mt-4 text-4xl font-black tracking-[-0.04em] text-[#0a2342]">
+          {activeSession.program} Practical
+          <span className="text-[#ff5a1f]">.</span>
+        </h2>
+
+        <div className="mt-5 rounded-3xl border border-[#ececea] bg-[#fbfbfa] p-5">
+          <div className="text-2xl font-black text-[#242421]">
+            Starts in 30 minutes
+          </div>
+
+          <div className="mt-3 text-lg font-bold text-[#4b4b48]">
+            {activeSession.position} · {activeSession.time}
+          </div>
+
+          <div className="mt-2 text-sm font-bold text-[#8b8a84]">
+            {activeSession.topic}
+          </div>
+        </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-[#ececea] bg-[#fbfbfa] p-4">
+            <div className="text-[10px] font-black uppercase tracking-wide text-[#8b8a84]">
+              trainee
+            </div>
+            <div className="mt-1 text-sm font-black">
+              {activeSession.traineeName}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-[#ececea] bg-[#fbfbfa] p-4">
+            <div className="text-[10px] font-black uppercase tracking-wide text-[#8b8a84]">
+              trainer
+            </div>
+            <div className="mt-1 text-sm font-black">
+              {activeSession.trainerName || "-"}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-7 flex items-center justify-end gap-3">
+          <button
+            onClick={() => {
+              setDismissed((prev) => [...prev, reminderKey]);
+              setVisible(false);
+            }}
+            className="rounded-full border border-[#dddbd6] bg-white px-5 py-3 text-sm font-black text-[#4b4b48] transition hover:bg-[#f3f3f1]"
+          >
+            Dismiss
+          </button>
+
+          <button
+            onClick={() => {
+              window.location.href = "/my-training";
+            }}
+            className="rounded-full bg-[#0a2342] px-5 py-3 text-sm font-black text-white transition hover:bg-[#163b6d]"
+          >
+            Open My Training
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
