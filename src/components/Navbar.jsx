@@ -13,8 +13,8 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="mx-auto flex max-w-[1480px] items-center justify-between rounded-[28px] border border-[#ececea] bg-white/70 px-5 py-4 shadow-sm backdrop-blur backdrop-saturate-150">
-      <div className="flex items-center gap-3">
+    <nav className="mx-auto flex max-w-[1480px] items-center justify-between rounded-[28px] border border-[#ececea] bg-white/70 px-6 py-4 shadow-sm backdrop-blur backdrop-saturate-150">
+      <div className="flex items-center gap-4">
         <Image
           src="/logo.png"
           alt="IVAO Thailand"
@@ -34,7 +34,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      <div className="hidden items-center gap-2 md:flex">
+      <div className="hidden items-center gap-2 lg:flex">
         <a
           href="/"
           className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]"
@@ -42,10 +42,26 @@ export default function Navbar() {
           Portal
         </a>
 
+        {session && (
+          <a
+            href="/my-training"
+            className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]"
+          >
+            My Training
+          </a>
+        )}
+
+        <a
+          href="/#schedule"
+          className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]"
+        >
+          Calendar
+        </a>
+
         {session?.hasTrainingAccess && (
           <a
             href="/staff"
-            className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]"
+            className="rounded-full bg-[#0a2342] px-4 py-2 text-base font-extrabold text-white transition hover:bg-[#163b6d]"
           >
             Staff Console
           </a>
