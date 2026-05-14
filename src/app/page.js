@@ -12,13 +12,23 @@ import UpNext from "../components/UpNext";
 import programs from "../data/programs";
 import { db } from "../lib/firebase";
 
+const monthNames = [
+  "jan", "feb", "mar", "apr", "may", "jun",
+  "jul", "aug", "sep", "oct", "nov", "dec",
+];
+
 function buildUpNextFromSessions(sessions) {
   return sessions.map((session) => {
-    const day = session.date?.split("-")[2]?.replace(/^0/, "") || "-";
+    const parts = session.date?.split("-") || [];
+    const monthIndex = Number(parts[1]) - 1;
+    const day = parts[2]?.replace(/^0/, "") || "-";
+    const month = monthNames[monthIndex] || "";
     const program = programs.find((p) => p.code === session.program);
 
     return {
       day,
+      month,
+      time: session.time || "-",
       type: session.program,
       pos: session.position,
       title: `${session.type} · ${session.topic}`,
