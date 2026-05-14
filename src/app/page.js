@@ -21,7 +21,8 @@ function buildUpNextFromSessions(sessions) {
       type: session.program,
       pos: session.position,
       title: `${session.type} · ${session.topic}`,
-      name: session.trainee,
+      name: session.traineeName || session.trainee || "Unknown trainee",
+      vid: session.traineeVid || "",
       color: program?.color || "#0a0a0a",
       mine: false,
     };
