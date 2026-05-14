@@ -1,6 +1,18 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { getClientSession } from "../lib/authSession";
 import Card from "./ui/Card";
 
 export default function UpNext({ upNext }) {
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    setSession(getClientSession());
+  }, []);
+
+  const canViewDetails = Boolean(session);
+
   return (
     <Card className="overflow-hidden p-0">
       <div className="flex items-center justify-between border-b border-[#ececea] px-6 py-5">
@@ -43,19 +55,27 @@ export default function UpNext({ upNext }) {
 
                 <span className="font-black">{s.pos}</span>
 
-                {s.mine && (
+                {s.mine && canViewDetails && (
                   <span className="ml-auto text-xs font-black italic text-[#16a34a]">
                     you
                   </span>
                 )}
               </div>
 
-              <div className="font-black">{s.title}</div>
+              {canViewDetails ? (
+                <>
+                  <div className="font-black">{s.title}</div>
 
-              <div className="mt-1 truncate text-sm font-semibold italic text-[#8b8a84]">
-                {s.name}
-                {s.vid ? ` (${s.vid})` : ""}
-              </div>
+                  <div className="mt-1 truncate text-sm font-semibold italic text-[#8b8a84]">
+                    {s.name}
+                    {s.vid ? ` (${s.vid})` : ""}
+                  </div>
+                </>
+              ) : (
+                <div className="mt-1 text-sm font-semibold italic text-[#8b8a84]">
+                  Login with IVAO to view session details
+                </div>
+              )}
             </div>
           </div>
         ))}
