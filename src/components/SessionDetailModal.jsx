@@ -20,6 +20,8 @@ export default function SessionDetailModal({ session, program, onClose }) {
   const accentColor = isExam ? "#dc2626" : program?.color || "#0a0a0a";
   const traineeName = session.traineeName || session.trainee || "Unknown trainee";
   const traineeVid = session.traineeVid || "-";
+  const trainerName = session.trainerName || "Legacy trainer";
+  const trainerVid = session.trainerVid || "-";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6 backdrop-blur-sm">
@@ -67,6 +69,11 @@ export default function SessionDetailModal({ session, program, onClose }) {
           <div className="grid grid-cols-2 gap-4">
             <DetailItem label="Trainee name" value={traineeName} />
             <DetailItem label="Trainee VID" value={traineeVid} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <DetailItem label="Trainer" value={trainerName} />
+            <DetailItem label="Trainer VID" value={trainerVid} />
           </div>
 
           <div className="rounded-3xl border border-[#ececea] bg-[#fbfbfa] p-5">
