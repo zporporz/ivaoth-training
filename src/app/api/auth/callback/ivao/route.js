@@ -84,7 +84,7 @@ export async function GET(request) {
 
   response.cookies.delete("ivao_oauth_state");
   response.cookies.set("ivao_session", encodeSession(session), {
-    httpOnly: true,
+    httpOnly: false,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     maxAge: 60 * 60 * 24 * 7,
