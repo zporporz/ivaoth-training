@@ -28,11 +28,20 @@ const programs = [
 
   {
     code: "ACC",
-    name: "Area Controller",
-    desc: "En-route · upper sector",
+    name: "Center Controller",
+    desc: "En-route · center sector",
     color: "#7c3aed",
     tint: "#ece1ff",
     tag: "rating",
+  },
+
+  {
+    code: "SEC",
+    name: "Senior Controller",
+    desc: "Senior ATC training",
+    color: "#9333ea",
+    tint: "#f3e8ff",
+    tag: "senior",
   },
 
   {
