@@ -143,6 +143,24 @@ export default function OriginalStaffPage() {
     setForm(emptyForm);
   }
 
+  async function handleClaimSession(session) {
+    if (!loginSession?.vid) {
+      alert("กรุณา login ใหม่ก่อน claim session");
+      return;
+    }
+
+    if (session.trainerVid) {
+      alert("Session นี้มี trainer แล้ว");
+      return;
+    }
+
+    await updateDoc(doc(db, "trainingSessions", session.firestoreId), {
+      trainerName: loginSession.name,
+      trainerVid: loginSession.vid,
+      updatedAt: serverTimestamp(),
+    });
+  }
+
   async function handleDelete(session) {
     if (!canManageSession(session)) {
       alert("ลบได้เฉพาะ session ที่คุณเป็นคนสอนเท่านั้น");
@@ -327,6 +345,7 @@ export default function OriginalStaffPage() {
               ) : (
                 sessions.map((s) => {
                   const canManage = canManageSession(s);
+                  const isLegacy = !s.trainerVid;
 
                   return (
                     <div
@@ -378,6 +397,13 @@ export default function OriginalStaffPage() {
                               delete
                             </button>
                           </>
+                        ) : isLegacy ? (
+                          <button
+                            onClick={() => handleClaimSession(s)}
+                            className="cursor-pointer rounded-full border border-[#0a2342] bg-[#0a2342] px-3 py-1 text-xs font-black text-white hover:bg-[#163b6d]"
+                          >
+                            claim
+                          </button>
                         ) : (
                           <span className="rounded-full border border-[#ececea] bg-[#fbfbfa] px-3 py-1 text-xs font-black text-[#8b8a84]">
                             view only
