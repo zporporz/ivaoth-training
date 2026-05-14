@@ -374,7 +374,7 @@ export default function OriginalStaffPage() {
                           {s.position} · {s.traineeName || s.trainee} {s.traineeVid ? `(${s.traineeVid})` : ""}
                         </div>
                         <div className="mt-1 text-xs font-black uppercase text-[#8b8a84]">
-                          trainer: {s.trainerName || "Legacy session"} {s.trainerVid ? `(${s.trainerVid})` : ""}
+                          trainer: {s.trainerName || "Legacy session"}
                         </div>
                       </div>
 
