@@ -1,4 +1,12 @@
-export default function ProgramCard({ p }) {
+export default function ProgramCard({ p, sessions = [] }) {
+  const related = sessions.filter((s) => s.program === p.code);
+
+  const upcoming = related.length;
+
+  const official = related.filter((s) => s.status === "Official").length;
+
+  const exams = related.filter((s) => s.status === "Exam").length;
+
   return (
     <div
       className="rounded-[18px] border border-[#dddbd6] bg-white p-5 shadow-sm"
@@ -18,6 +26,7 @@ export default function ProgramCard({ p }) {
       </div>
 
       <div className="mt-3 text-base font-black">{p.name}</div>
+
       <div className="mt-1 text-sm font-semibold italic text-[#8b8a84]">
         {p.desc}
       </div>
@@ -25,21 +34,21 @@ export default function ProgramCard({ p }) {
       <div className="mt-5 grid grid-cols-3 border-t border-[#ececea] pt-4">
         <div>
           <div className="text-3xl font-black" style={{ color: p.color }}>
-            {p.upcoming}
+            {upcoming}
           </div>
           <div className="text-xs italic text-[#8b8a84]">upcoming</div>
         </div>
 
         <div>
           <div className="text-3xl font-black text-[#b8b6ae]">
-            {p.pending}
+            {official}
           </div>
-          <div className="text-xs italic text-[#8b8a84]">pending</div>
+          <div className="text-xs italic text-[#8b8a84]">official</div>
         </div>
 
         <div>
-          <div className="text-3xl font-black">{p.done}</div>
-          <div className="text-xs italic text-[#8b8a84]">done</div>
+          <div className="text-3xl font-black">{exams}</div>
+          <div className="text-xs italic text-[#8b8a84]">exams</div>
         </div>
       </div>
     </div>

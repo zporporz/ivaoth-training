@@ -6,10 +6,11 @@ import {
   collection,
   deleteDoc,
   doc,
-  getDocs,
+  onSnapshot,
   orderBy,
   query,
   serverTimestamp,
+  updateDoc,
 } from "firebase/firestore";
 
 import Navbar from "../../components/Navbar";
@@ -33,6 +34,7 @@ function StatusBadge({ status }) {
 
 export default function StaffPage() {
   const [sessions, setSessions] = useState([]);
+  const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
@@ -53,23 +55,25 @@ export default function StaffPage() {
     }));
   }
 
-  async function loadSessions() {
+  useEffect(() => {
     setLoading(true);
 
-    const q = query(collection(db, "trainingSessions"), orderBy("createdAt", "desc"));
-    const snapshot = await getDocs(q);
+    const q = query(
+      collection(db, "trainingSessions"),
+      orderBy("date", "asc")
+    );
 
-    const data = snapshot.docs.map((item) => ({
-      firestoreId: item.id,
-      ...item.data(),
-    }));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map((item) => ({
+        firestoreId: item.id,
+        ...item.data(),
+      }));
 
-    setSessions(data);
-    setLoading(false);
-  }
+      setSessions(data);
+      setLoading(false);
+    });
 
-  useEffect(() => {
-    loadSessions();
+    return () => unsubscribe();
   }, []);
 
   async function handlePublish() {
@@ -81,7 +85,7 @@ export default function StaffPage() {
     const isExam = form.type.includes("Exam");
     const isOfficial = form.type.includes("Official");
 
-    const newSession = {
+    const sessionData = {
       date: form.date,
       time: form.time,
       program: form.program,
@@ -91,10 +95,18 @@ export default function StaffPage() {
       position: form.position.toUpperCase(),
       trainee: form.trainee,
       status: isExam ? "Exam" : isOfficial ? "Official" : "Scheduled",
-      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     };
 
-    await addDoc(collection(db, "trainingSessions"), newSession);
+    if (editingId) {
+      await updateDoc(doc(db, "trainingSessions", editingId), sessionData);
+      setEditingId(null);
+    } else {
+      await addDoc(collection(db, "trainingSessions"), {
+        ...sessionData,
+        createdAt: serverTimestamp(),
+      });
+    }
 
     setForm({
       date: "",
@@ -106,13 +118,41 @@ export default function StaffPage() {
       topic: "",
       remarks: "",
     });
-
-    await loadSessions();
   }
 
   async function handleDelete(session) {
     await deleteDoc(doc(db, "trainingSessions", session.firestoreId));
-    await loadSessions();
+  }
+
+  function handleEdit(session) {
+    setEditingId(session.firestoreId);
+
+    setForm({
+      date: session.date || "",
+      time: session.time || "",
+      program: session.program || "ASx",
+      type: session.type || "Theory Training",
+      position: session.position || "",
+      trainee: session.trainee || "",
+      topic: session.topic || "",
+      remarks: session.remarks || "",
+    });
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function handleCancelEdit() {
+    setEditingId(null);
+    setForm({
+      date: "",
+      time: "",
+      program: "ASx",
+      type: "Theory Training",
+      position: "",
+      trainee: "",
+      topic: "",
+      remarks: "",
+    });
   }
 
   return (
@@ -134,17 +174,28 @@ export default function StaffPage() {
 
         <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
           <Card>
-            <div className="text-xs font-black uppercase text-[#8b8a84]">
-              Create Session
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-black uppercase text-[#8b8a84]">
+                {editingId ? "Edit Session" : "Create Session"}
+              </div>
+
+              {editingId && (
+                <button
+                  onClick={handleCancelEdit}
+                  className="cursor-pointer rounded-full border border-[#dddbd6] bg-white px-3 py-1 text-xs font-black text-[#4b4b48] hover:bg-[#f3f3f1]"
+                >
+                  cancel edit
+                </button>
+              )}
             </div>
 
             <div className="mt-5 space-y-4">
               <input
-  type="date"
-  value={form.date}
-  onChange={(e) => updateForm("date", e.target.value)}
-  className="w-full cursor-pointer rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
-/>
+                type="date"
+                value={form.date}
+                onChange={(e) => updateForm("date", e.target.value)}
+                className="w-full cursor-pointer rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
+              />
 
               <input
                 value={form.time}
@@ -211,7 +262,7 @@ export default function StaffPage() {
                 onClick={handlePublish}
                 className="w-full cursor-pointer rounded-2xl bg-black px-5 py-3 font-black text-white transition hover:-translate-y-0.5 hover:bg-[#16a34a] hover:shadow-lg active:translate-y-0"
               >
-                Publish Session
+                {editingId ? "Update Session" : "Publish Session"}
               </button>
             </div>
           </Card>
@@ -267,13 +318,16 @@ export default function StaffPage() {
                     <div className="flex items-center justify-end gap-2">
                       <StatusBadge status={s.status} />
 
-                      <button className="rounded-full border border-[#dddbd6] bg-white px-3 py-1 text-xs font-black text-[#4b4b48] hover:bg-[#f3f3f1]">
+                      <button
+                        onClick={() => handleEdit(s)}
+                        className="cursor-pointer rounded-full border border-[#dddbd6] bg-white px-3 py-1 text-xs font-black text-[#4b4b48] hover:bg-[#f3f3f1]"
+                      >
                         edit
                       </button>
 
                       <button
                         onClick={() => handleDelete(s)}
-                        className="rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-black text-red-600 hover:bg-red-100"
+                        className="cursor-pointer rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-black text-red-600 hover:bg-red-100"
                       >
                         delete
                       </button>

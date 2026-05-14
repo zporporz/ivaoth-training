@@ -10,7 +10,10 @@ export default function UpNext({ upNext }) {
         </div>
 
         <div className="text-sm font-bold text-[#8b8a84]">
-          <span className="text-[#ff5a1f]">26</span> sessions
+          <span className="text-[#ff5a1f]">
+  {upNext.length}
+</span>{" "}
+sessions
         </div>
       </div>
 

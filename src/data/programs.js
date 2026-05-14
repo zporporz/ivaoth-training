@@ -2,15 +2,12 @@ const programs = [
   {
     code: "ASx",
     name: "ATC Student Training",
-    desc: "AS1 · AS2 · AS3 combined training",
+    desc: "AS1 - AS3 combined training",
     color: "#2563eb",
     tint: "#e0eaff",
     tag: "student",
-    upcoming: 8,
-    pending: 3,
-    done: 4,
-    exam: false,
   },
+
   {
     code: "ADC",
     name: "Aerodrome Controller",
@@ -18,11 +15,8 @@ const programs = [
     color: "#16a34a",
     tint: "#e3f7ea",
     tag: "rating",
-    upcoming: 4,
-    pending: 0,
-    done: 1,
-    exam: true,
   },
+
   {
     code: "APC",
     name: "Approach Controller",
@@ -30,11 +24,8 @@ const programs = [
     color: "#d97706",
     tint: "#fde9c8",
     tag: "rating",
-    upcoming: 4,
-    pending: 1,
-    done: 2,
-    exam: true,
   },
+
   {
     code: "ACC",
     name: "Area Controller",
@@ -42,11 +33,8 @@ const programs = [
     color: "#7c3aed",
     tint: "#ece1ff",
     tag: "rating",
-    upcoming: 3,
-    pending: 0,
-    done: 1,
-    exam: true,
   },
+
   {
     code: "GCA",
     name: "GCA Check",
@@ -54,10 +42,6 @@ const programs = [
     color: "#dc2626",
     tint: "#fde6e6",
     tag: "check",
-    upcoming: 3,
-    pending: 0,
-    done: 0,
-    exam: true,
   },
 ];
 
