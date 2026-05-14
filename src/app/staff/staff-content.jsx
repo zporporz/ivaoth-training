@@ -15,6 +15,7 @@ import {
 
 import Navbar from "../../components/Navbar";
 import Card from "../../components/ui/Card";
+import { getClientSession } from "../../lib/authSession";
 import { db } from "../../lib/firebase";
 
 function StatusBadge({ status }) {
@@ -49,6 +50,12 @@ export default function OriginalStaffPage() {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(emptyForm);
+  const [loginSession, setLoginSession] = useState(null);
+
+  function canManageSession(session) {
+    if (!loginSession?.vid) return false;
+    return String(session.trainerVid || "") === String(loginSession.vid);
+  }
 
   function updateForm(field, value) {
     setForm((prev) => ({
@@ -58,6 +65,7 @@ export default function OriginalStaffPage() {
   }
 
   useEffect(() => {
+    setLoginSession(getClientSession());
     setLoading(true);
 
     const q = query(
@@ -91,6 +99,18 @@ export default function OriginalStaffPage() {
       return;
     }
 
+    if (!loginSession?.vid) {
+      alert("กรุณา login ใหม่ก่อนสร้าง session");
+      return;
+    }
+
+    const editingSession = sessions.find((s) => s.firestoreId === editingId);
+
+    if (editingId && !canManageSession(editingSession || {})) {
+      alert("แก้ไขได้เฉพาะ session ที่คุณเป็นคนสอนเท่านั้น");
+      return;
+    }
+
     const isExam = form.type.includes("Exam");
     const isOfficial = form.type.includes("Official");
 
@@ -104,6 +124,8 @@ export default function OriginalStaffPage() {
       position: form.position.toUpperCase(),
       traineeName: form.traineeName.trim(),
       traineeVid: form.traineeVid.trim(),
+      trainerName: editingSession?.trainerName || loginSession.name,
+      trainerVid: editingSession?.trainerVid || loginSession.vid,
       status: isExam ? "Exam" : isOfficial ? "Official" : "Scheduled",
       updatedAt: serverTimestamp(),
     };
@@ -122,10 +144,20 @@ export default function OriginalStaffPage() {
   }
 
   async function handleDelete(session) {
+    if (!canManageSession(session)) {
+      alert("ลบได้เฉพาะ session ที่คุณเป็นคนสอนเท่านั้น");
+      return;
+    }
+
     await deleteDoc(doc(db, "trainingSessions", session.firestoreId));
   }
 
   function handleEdit(session) {
+    if (!canManageSession(session)) {
+      alert("แก้ไขได้เฉพาะ session ที่คุณเป็นคนสอนเท่านั้น");
+      return;
+    }
+
     setEditingId(session.firestoreId);
 
     setForm({
@@ -180,6 +212,10 @@ export default function OriginalStaffPage() {
                   cancel edit
                 </button>
               )}
+            </div>
+
+            <div className="mt-3 rounded-2xl border border-[#ececea] bg-[#fbfbfa] px-4 py-3 text-sm font-bold text-[#8b8a84]">
+              Trainer: {loginSession?.name || "-"} {loginSession?.vid ? `(${loginSession.vid})` : ""}
             </div>
 
             <div className="mt-5 space-y-4">
@@ -289,53 +325,68 @@ export default function OriginalStaffPage() {
                   No sessions yet.
                 </div>
               ) : (
-                sessions.map((s) => (
-                  <div
-                    key={s.firestoreId}
-                    className="grid grid-cols-[90px_120px_80px_1fr_220px] items-center gap-4 border-b border-[#ececea] px-6 py-5"
-                  >
-                    <div className="text-sm font-black text-[#8b8a84]">
-                      {s.firestoreId.slice(0, 7)}
-                    </div>
+                sessions.map((s) => {
+                  const canManage = canManageSession(s);
 
-                    <div>
-                      <div className="font-black">{s.date}</div>
-                      <div className="text-sm font-bold italic text-[#8b8a84]">
-                        {s.time}
+                  return (
+                    <div
+                      key={s.firestoreId}
+                      className="grid grid-cols-[90px_120px_80px_1fr_220px] items-center gap-4 border-b border-[#ececea] px-6 py-5"
+                    >
+                      <div className="text-sm font-black text-[#8b8a84]">
+                        {s.firestoreId.slice(0, 7)}
+                      </div>
+
+                      <div>
+                        <div className="font-black">{s.date}</div>
+                        <div className="text-sm font-bold italic text-[#8b8a84]">
+                          {s.time}
+                        </div>
+                      </div>
+
+                      <div className="font-black">{s.program}</div>
+
+                      <div>
+                        <div className="font-black">{s.type}</div>
+                        <div className="mt-1 text-sm font-semibold text-[#4b4b48]">
+                          {s.topic}
+                        </div>
+                        <div className="mt-1 text-sm font-semibold italic text-[#8b8a84]">
+                          {s.position} · {s.traineeName || s.trainee} {s.traineeVid ? `(${s.traineeVid})` : ""}
+                        </div>
+                        <div className="mt-1 text-xs font-black uppercase text-[#8b8a84]">
+                          trainer: {s.trainerName || "Legacy session"} {s.trainerVid ? `(${s.trainerVid})` : ""}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2">
+                        <StatusBadge status={s.status} />
+
+                        {canManage ? (
+                          <>
+                            <button
+                              onClick={() => handleEdit(s)}
+                              className="cursor-pointer rounded-full border border-[#dddbd6] bg-white px-3 py-1 text-xs font-black text-[#4b4b48] hover:bg-[#f3f3f1]"
+                            >
+                              edit
+                            </button>
+
+                            <button
+                              onClick={() => handleDelete(s)}
+                              className="cursor-pointer rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-black text-red-600 hover:bg-red-100"
+                            >
+                              delete
+                            </button>
+                          </>
+                        ) : (
+                          <span className="rounded-full border border-[#ececea] bg-[#fbfbfa] px-3 py-1 text-xs font-black text-[#8b8a84]">
+                            view only
+                          </span>
+                        )}
                       </div>
                     </div>
-
-                    <div className="font-black">{s.program}</div>
-
-                    <div>
-                      <div className="font-black">{s.type}</div>
-                      <div className="mt-1 text-sm font-semibold text-[#4b4b48]">
-                        {s.topic}
-                      </div>
-                      <div className="mt-1 text-sm font-semibold italic text-[#8b8a84]">
-                        {s.position} · {s.traineeName || s.trainee} {s.traineeVid ? `(${s.traineeVid})` : ""}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-end gap-2">
-                      <StatusBadge status={s.status} />
-
-                      <button
-                        onClick={() => handleEdit(s)}
-                        className="cursor-pointer rounded-full border border-[#dddbd6] bg-white px-3 py-1 text-xs font-black text-[#4b4b48] hover:bg-[#f3f3f1]"
-                      >
-                        edit
-                      </button>
-
-                      <button
-                        onClick={() => handleDelete(s)}
-                        className="cursor-pointer rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-black text-red-600 hover:bg-red-100"
-                      >
-                        delete
-                      </button>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </Card>
