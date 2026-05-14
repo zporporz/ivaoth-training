@@ -76,7 +76,7 @@ export default function Home() {
             </span>
           </div>
 
-          <div className="grid max-w-[1080px] grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+          <div className="grid w-full grid-cols-6 gap-4">
             {programs.map((p) => (
               <ProgramCard key={p.code} p={p} sessions={dbSessions} />
             ))}
