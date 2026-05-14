@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Card from "./ui/Card";
+import SessionDetailModal from "./SessionDetailModal";
 
 const monthNames = [
   "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
@@ -36,7 +37,7 @@ function buildMonthGrid(cursor) {
   });
 }
 
-function SessionChip({ session, programs }) {
+function SessionChip({ session, programs, onClick }) {
   const program = programs.find((p) => p.code === session.program);
 
   const isExam = session.status === "Exam";
@@ -44,8 +45,9 @@ function SessionChip({ session, programs }) {
   const isUnofficial = session.type?.includes("Unofficial");
 
   return (
-    <div
-      className={`max-w-full overflow-hidden rounded-md px-2 py-1 text-[10px] font-black ${
+    <button
+      onClick={() => onClick(session)}
+      className={`max-w-full cursor-pointer overflow-hidden rounded-md px-2 py-1 text-left text-[10px] font-black transition hover:-translate-y-0.5 hover:shadow-md ${
         isExam
           ? "border border-red-500 bg-red-50 shadow-sm"
           : isOfficial
@@ -90,12 +92,13 @@ function SessionChip({ session, programs }) {
       <div className="truncate text-[9px] font-bold text-[#8b8a84]">
         {session.position}
       </div>
-    </div>
+    </button>
   );
 }
 
 export default function TrainingCalendar({ sessions, programs }) {
   const [cursor, setCursor] = useState(new Date());
+  const [selectedSession, setSelectedSession] = useState(null);
 
   const grid = buildMonthGrid(cursor);
   const todayKey = toDateKey(new Date());
@@ -114,91 +117,104 @@ export default function TrainingCalendar({ sessions, programs }) {
 
   const monthLabel = `${monthNames[cursor.getMonth()]} ${cursor.getFullYear()}`;
 
+  const selectedProgram = programs.find(
+    (p) => p.code === selectedSession?.program
+  );
+
   return (
-    <Card className="overflow-hidden p-0">
-      <div className="flex items-center justify-between border-b border-[#ececea] px-6 py-5">
-        <div className="text-2xl font-black">
-          <span className="font-normal italic text-[#8b8a84]">the/</span>
-          schedule
+    <>
+      <Card className="overflow-hidden p-0">
+        <div className="flex items-center justify-between border-b border-[#ececea] px-6 py-5">
+          <div className="text-2xl font-black">
+            <span className="font-normal italic text-[#8b8a84]">the/</span>
+            schedule
 
-          <span className="ml-3 text-sm font-bold text-[#8b8a84]">
-            {monthLabel}
-          </span>
-        </div>
-
-        <div className="flex gap-2">
-          <button
-            onClick={() => moveMonth(-1)}
-            className="cursor-pointer rounded-lg border border-[#dddbd6] bg-white px-3 py-2 font-black"
-          >
-            ‹
-          </button>
-
-          <button
-            onClick={goToday}
-            className="cursor-pointer rounded-lg bg-black px-4 py-2 text-sm font-black text-white"
-          >
-            today
-          </button>
-
-          <button
-            onClick={() => moveMonth(1)}
-            className="cursor-pointer rounded-lg border border-[#dddbd6] bg-white px-3 py-2 font-black"
-          >
-            ›
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-7 bg-[#fbfbfa] text-xs font-black italic text-[#8b8a84]">
-        {["sun", "mon", "tue", "wed", "thu", "fri", "sat"].map((d) => (
-          <div key={d} className="border-b border-[#ececea] px-4 py-3">
-            {d}
+            <span className="ml-3 text-sm font-bold text-[#8b8a84]">
+              {monthLabel}
+            </span>
           </div>
-        ))}
-      </div>
 
-      <div className="grid grid-cols-7">
-        {grid.map((item) => {
-          const daySessions = sessions.filter((s) => s.date === item.key);
-          const visibleSessions = daySessions.slice(0, 3);
-          const hiddenCount = daySessions.length - visibleSessions.length;
-          const isToday = item.key === todayKey;
-
-          return (
-            <div
-              key={item.key}
-              className={`min-h-[128px] border-b border-r border-[#ececea] p-2 ${
-                isToday ? "bg-[#e3f7ea]" : "bg-white/40"
-              } ${!item.isCurrentMonth ? "opacity-40" : ""}`}
+          <div className="flex gap-2">
+            <button
+              onClick={() => moveMonth(-1)}
+              className="cursor-pointer rounded-lg border border-[#dddbd6] bg-white px-3 py-2 font-black"
             >
-              <div
-                className={`mb-2 text-lg font-black ${
-                  isToday ? "text-[#16a34a]" : "text-[#b8b6ae]"
-                }`}
-              >
-                {item.day}
-              </div>
+              ‹
+            </button>
 
-              <div className="space-y-1 overflow-hidden">
-                {visibleSessions.map((session) => (
-                  <SessionChip
-                    key={session.id}
-                    session={session}
-                    programs={programs}
-                  />
-                ))}
+            <button
+              onClick={goToday}
+              className="cursor-pointer rounded-lg bg-black px-4 py-2 text-sm font-black text-white"
+            >
+              today
+            </button>
 
-                {hiddenCount > 0 && (
-                  <div className="rounded-md bg-black px-2 py-1 text-[10px] font-black text-white">
-                    +{hiddenCount} more
-                  </div>
-                )}
-              </div>
+            <button
+              onClick={() => moveMonth(1)}
+              className="cursor-pointer rounded-lg border border-[#dddbd6] bg-white px-3 py-2 font-black"
+            >
+              ›
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-7 bg-[#fbfbfa] text-xs font-black italic text-[#8b8a84]">
+          {["sun", "mon", "tue", "wed", "thu", "fri", "sat"].map((d) => (
+            <div key={d} className="border-b border-[#ececea] px-4 py-3">
+              {d}
             </div>
-          );
-        })}
-      </div>
-    </Card>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-7">
+          {grid.map((item) => {
+            const daySessions = sessions.filter((s) => s.date === item.key);
+            const visibleSessions = daySessions.slice(0, 3);
+            const hiddenCount = daySessions.length - visibleSessions.length;
+            const isToday = item.key === todayKey;
+
+            return (
+              <div
+                key={item.key}
+                className={`min-h-[128px] border-b border-r border-[#ececea] p-2 ${
+                  isToday ? "bg-[#e3f7ea]" : "bg-white/40"
+                } ${!item.isCurrentMonth ? "opacity-40" : ""}`}
+              >
+                <div
+                  className={`mb-2 text-lg font-black ${
+                    isToday ? "text-[#16a34a]" : "text-[#b8b6ae]"
+                  }`}
+                >
+                  {item.day}
+                </div>
+
+                <div className="space-y-1 overflow-hidden">
+                  {visibleSessions.map((session) => (
+                    <SessionChip
+                      key={session.id}
+                      session={session}
+                      programs={programs}
+                      onClick={setSelectedSession}
+                    />
+                  ))}
+
+                  {hiddenCount > 0 && (
+                    <div className="rounded-md bg-black px-2 py-1 text-[10px] font-black text-white">
+                      +{hiddenCount} more
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+
+      <SessionDetailModal
+        session={selectedSession}
+        program={selectedProgram}
+        onClose={() => setSelectedSession(null)}
+      />
+    </>
   );
 }
