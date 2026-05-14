@@ -206,6 +206,7 @@ export default function OriginalStaffPage() {
                 <option>ADC</option>
                 <option>APC</option>
                 <option>ACC</option>
+                <option>SEC</option>
                 <option>GCA</option>
               </select>
 
