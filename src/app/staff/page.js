@@ -1,44 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  orderBy,
+  query,
+  serverTimestamp,
+} from "firebase/firestore";
+
 import Navbar from "../../components/Navbar";
 import Card from "../../components/ui/Card";
-
-const initialSessions = [
-  {
-    id: "TRN-001",
-    date: "14 May 2026",
-    time: "1300Z",
-    program: "ASx",
-    type: "Theory",
-    topic: "Airspace structure and basic ATC phraseology",
-    position: "VTBS_TWR",
-    trainee: "You (Trainee)",
-    status: "Scheduled",
-  },
-  {
-    id: "TRN-002",
-    date: "19 May 2026",
-    time: "1400Z",
-    program: "ADC",
-    type: "Official Practical",
-    topic: "Tower operations, runway separation, and traffic flow",
-    position: "VTBD_TWR",
-    trainee: "Karuna L.",
-    status: "Official",
-  },
-  {
-    id: "EXM-001",
-    date: "23 May 2026",
-    time: "1600Z",
-    program: "GCA",
-    type: "Exam",
-    topic: "Final practical checkride",
-    position: "VTBS_APP",
-    trainee: "Chayanin V.",
-    status: "Exam",
-  },
-];
+import { db } from "../../lib/firebase";
 
 function StatusBadge({ status }) {
   const style =
@@ -56,7 +32,8 @@ function StatusBadge({ status }) {
 }
 
 export default function StaffPage() {
-  const [sessions, setSessions] = useState(initialSessions);
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
     date: "",
@@ -76,7 +53,26 @@ export default function StaffPage() {
     }));
   }
 
-  function handlePublish() {
+  async function loadSessions() {
+    setLoading(true);
+
+    const q = query(collection(db, "trainingSessions"), orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+
+    const data = snapshot.docs.map((item) => ({
+      firestoreId: item.id,
+      ...item.data(),
+    }));
+
+    setSessions(data);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    loadSessions();
+  }, []);
+
+  async function handlePublish() {
     if (!form.date || !form.time || !form.position || !form.trainee || !form.topic) {
       alert("กรอก Date, Time, Position, Trainee และ Topic ก่อน");
       return;
@@ -86,18 +82,19 @@ export default function StaffPage() {
     const isOfficial = form.type.includes("Official");
 
     const newSession = {
-      id: `${isExam ? "EXM" : "TRN"}-${String(sessions.length + 1).padStart(3, "0")}`,
       date: form.date,
       time: form.time,
       program: form.program,
       type: form.type,
       topic: form.topic,
-      position: form.position,
+      remarks: form.remarks,
+      position: form.position.toUpperCase(),
       trainee: form.trainee,
       status: isExam ? "Exam" : isOfficial ? "Official" : "Scheduled",
+      createdAt: serverTimestamp(),
     };
 
-    setSessions((prev) => [newSession, ...prev]);
+    await addDoc(collection(db, "trainingSessions"), newSession);
 
     setForm({
       date: "",
@@ -109,24 +106,14 @@ export default function StaffPage() {
       topic: "",
       remarks: "",
     });
+
+    await loadSessions();
   }
 
-  function handleEdit(session) {
-  setForm({
-    date: session.date,
-    time: session.time,
-    program: session.program,
-    type: session.type,
-    position: session.position,
-    trainee: session.trainee,
-    topic: session.topic,
-    remarks: "",
-  });
-
-  setSessions((prev) =>
-    prev.filter((item) => item.id !== session.id)
-  );
-}
+  async function handleDelete(session) {
+    await deleteDoc(doc(db, "trainingSessions", session.firestoreId));
+    await loadSessions();
+  }
 
   return (
     <main className="relative z-10 min-h-screen px-6 py-6">
@@ -153,11 +140,11 @@ export default function StaffPage() {
 
             <div className="mt-5 space-y-4">
               <input
-                value={form.date}
-                onChange={(e) => updateForm("date", e.target.value)}
-                placeholder="Date e.g. 24 May 2026"
-                className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
-              />
+  type="date"
+  value={form.date}
+  onChange={(e) => updateForm("date", e.target.value)}
+  className="w-full cursor-pointer rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
+/>
 
               <input
                 value={form.time}
@@ -222,7 +209,7 @@ export default function StaffPage() {
 
               <button
                 onClick={handlePublish}
-                className="w-full rounded-2xl bg-black px-5 py-3 font-black text-white"
+                className="w-full cursor-pointer rounded-2xl bg-black px-5 py-3 font-black text-white transition hover:-translate-y-0.5 hover:bg-[#16a34a] hover:shadow-lg active:translate-y-0"
               >
                 Publish Session
               </button>
@@ -240,59 +227,60 @@ export default function StaffPage() {
             </div>
 
             <div>
-              {sessions.map((s) => (
-                <div
-                  key={s.id}
-                  className="grid grid-cols-[90px_120px_80px_1fr_220px] items-center gap-4 border-b border-[#ececea] px-6 py-5"
-                >
-                  <div className="text-sm font-black text-[#8b8a84]">
-                    {s.id}
-                  </div>
-
-                  <div>
-                    <div className="font-black">{s.date}</div>
-                    <div className="text-sm font-bold italic text-[#8b8a84]">
-                      {s.time}
-                    </div>
-                  </div>
-
-                  <div className="font-black">{s.program}</div>
-
-                  <div>
-                    <div className="font-black">{s.type}</div>
-                    <div className="mt-1 text-sm font-semibold text-[#4b4b48]">
-                      {s.topic}
-                    </div>
-                    <div className="mt-1 text-sm font-semibold italic text-[#8b8a84]">
-                      {s.position} · {s.trainee}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-end gap-2">
-  <StatusBadge status={s.status} />
-
-  <button
-    onClick={() => handleEdit(s)}
-    className="rounded-full border border-[#dddbd6] bg-white px-3 py-1 text-xs font-black text-[#4b4b48] hover:bg-[#f3f3f1]"
-  >
-    edit
-  </button>
-
-  <button
-    onClick={() =>
-      setSessions((prev) =>
-        prev.filter((item) => item.id !== s.id)
-      )
-    }
-    className="rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-black text-red-600 hover:bg-red-100"
-  >
-    delete
-  </button>
-</div>
-  
-
+              {loading ? (
+                <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">
+                  Loading sessions...
                 </div>
-              ))}
+              ) : sessions.length === 0 ? (
+                <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">
+                  No sessions yet.
+                </div>
+              ) : (
+                sessions.map((s) => (
+                  <div
+                    key={s.firestoreId}
+                    className="grid grid-cols-[90px_120px_80px_1fr_220px] items-center gap-4 border-b border-[#ececea] px-6 py-5"
+                  >
+                    <div className="text-sm font-black text-[#8b8a84]">
+                      {s.firestoreId.slice(0, 7)}
+                    </div>
+
+                    <div>
+                      <div className="font-black">{s.date}</div>
+                      <div className="text-sm font-bold italic text-[#8b8a84]">
+                        {s.time}
+                      </div>
+                    </div>
+
+                    <div className="font-black">{s.program}</div>
+
+                    <div>
+                      <div className="font-black">{s.type}</div>
+                      <div className="mt-1 text-sm font-semibold text-[#4b4b48]">
+                        {s.topic}
+                      </div>
+                      <div className="mt-1 text-sm font-semibold italic text-[#8b8a84]">
+                        {s.position} · {s.trainee}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2">
+                      <StatusBadge status={s.status} />
+
+                      <button className="rounded-full border border-[#dddbd6] bg-white px-3 py-1 text-xs font-black text-[#4b4b48] hover:bg-[#f3f3f1]">
+                        edit
+                      </button>
+
+                      <button
+                        onClick={() => handleDelete(s)}
+                        className="rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-black text-red-600 hover:bg-red-100"
+                      >
+                        delete
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </Card>
         </div>
