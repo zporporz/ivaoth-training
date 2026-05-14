@@ -32,21 +32,23 @@ function StatusBadge({ status }) {
   );
 }
 
+const emptyForm = {
+  date: "",
+  time: "",
+  program: "ASx",
+  type: "Theory Training",
+  position: "",
+  traineeName: "",
+  traineeVid: "",
+  topic: "",
+  remarks: "",
+};
+
 export default function StaffPage() {
   const [sessions, setSessions] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const [form, setForm] = useState({
-    date: "",
-    time: "",
-    program: "ASx",
-    type: "Theory Training",
-    position: "",
-    trainee: "",
-    topic: "",
-    remarks: "",
-  });
+  const [form, setForm] = useState(emptyForm);
 
   function updateForm(field, value) {
     setForm((prev) => ({
@@ -77,8 +79,15 @@ export default function StaffPage() {
   }, []);
 
   async function handlePublish() {
-    if (!form.date || !form.time || !form.position || !form.trainee || !form.topic) {
-      alert("กรอก Date, Time, Position, Trainee และ Topic ก่อน");
+    if (
+      !form.date ||
+      !form.time ||
+      !form.position ||
+      !form.traineeName ||
+      !form.traineeVid ||
+      !form.topic
+    ) {
+      alert("กรอก Date, Time, Position, Trainee Name, Trainee VID และ Topic ก่อน");
       return;
     }
 
@@ -93,7 +102,8 @@ export default function StaffPage() {
       topic: form.topic,
       remarks: form.remarks,
       position: form.position.toUpperCase(),
-      trainee: form.trainee,
+      traineeName: form.traineeName.trim(),
+      traineeVid: form.traineeVid.trim(),
       status: isExam ? "Exam" : isOfficial ? "Official" : "Scheduled",
       updatedAt: serverTimestamp(),
     };
@@ -108,16 +118,7 @@ export default function StaffPage() {
       });
     }
 
-    setForm({
-      date: "",
-      time: "",
-      program: "ASx",
-      type: "Theory Training",
-      position: "",
-      trainee: "",
-      topic: "",
-      remarks: "",
-    });
+    setForm(emptyForm);
   }
 
   async function handleDelete(session) {
@@ -133,7 +134,8 @@ export default function StaffPage() {
       program: session.program || "ASx",
       type: session.type || "Theory Training",
       position: session.position || "",
-      trainee: session.trainee || "",
+      traineeName: session.traineeName || session.trainee || "",
+      traineeVid: session.traineeVid || "",
       topic: session.topic || "",
       remarks: session.remarks || "",
     });
@@ -143,16 +145,7 @@ export default function StaffPage() {
 
   function handleCancelEdit() {
     setEditingId(null);
-    setForm({
-      date: "",
-      time: "",
-      program: "ASx",
-      type: "Theory Training",
-      position: "",
-      trainee: "",
-      topic: "",
-      remarks: "",
-    });
+    setForm(emptyForm);
   }
 
   return (
@@ -236,9 +229,17 @@ export default function StaffPage() {
               />
 
               <input
-                value={form.trainee}
-                onChange={(e) => updateForm("trainee", e.target.value)}
-                placeholder="Trainee name / VID"
+                value={form.traineeName}
+                onChange={(e) => updateForm("traineeName", e.target.value)}
+                placeholder="Trainee name *"
+                className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
+              />
+
+              <input
+                value={form.traineeVid}
+                onChange={(e) => updateForm("traineeVid", e.target.value.replace(/\D/g, ""))}
+                placeholder="Trainee VID *"
+                inputMode="numeric"
                 className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
               />
 
@@ -311,7 +312,7 @@ export default function StaffPage() {
                         {s.topic}
                       </div>
                       <div className="mt-1 text-sm font-semibold italic text-[#8b8a84]">
-                        {s.position} · {s.trainee}
+                        {s.position} · {s.traineeName || s.trainee} {s.traineeVid ? `(${s.traineeVid})` : ""}
                       </div>
                     </div>
 
