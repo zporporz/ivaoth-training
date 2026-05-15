@@ -198,6 +198,12 @@ export default function OriginalStaffPage() {
     setForm(emptyForm);
   }
 
+  const mySessions = loginSession?.vid
+    ? sessions.filter(
+        (session) => String(session.trainerVid || "") === String(loginSession.vid)
+      )
+    : [];
+
   return (
     <main className="relative z-10 min-h-screen px-6 py-6">
       <Navbar />
@@ -214,6 +220,89 @@ export default function OriginalStaffPage() {
             <span className="text-[#ff5a1f]">.</span>
           </h1>
         </div>
+
+        <Card className="mb-6 overflow-hidden p-0">
+          <div className="flex items-center justify-between border-b border-[#ececea] px-6 py-5">
+            <div>
+              <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
+                personal trainer view
+              </div>
+
+              <div className="mt-1 text-2xl font-black">
+                <span className="font-normal italic text-[#8b8a84]">my/</span>
+                teaching schedule
+              </div>
+            </div>
+
+            <div className="rounded-full bg-black px-4 py-2 text-sm font-black text-white">
+              {mySessions.length} sessions
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">
+              Loading your sessions...
+            </div>
+          ) : mySessions.length === 0 ? (
+            <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">
+              You do not have any assigned teaching sessions yet.
+            </div>
+          ) : (
+            <div className="divide-y divide-[#ececea]">
+              {mySessions.map((s) => (
+                <div
+                  key={`mine-${s.firestoreId}`}
+                  className="grid grid-cols-[120px_90px_1fr_210px] items-center gap-4 px-6 py-5"
+                >
+                  <div>
+                    <div className="font-black">{s.date}</div>
+                    <div className="text-sm font-bold italic text-[#8b8a84]">
+                      {s.time}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="font-black">{s.program}</div>
+                    <div className="mt-1 text-xs font-black uppercase text-[#8b8a84]">
+                      {s.position}
+                    </div>
+                  </div>
+
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="font-black">{s.type}</div>
+                      <StatusBadge status={s.status} />
+                    </div>
+
+                    <div className="mt-1 truncate text-sm font-semibold text-[#4b4b48]">
+                      {s.topic}
+                    </div>
+
+                    <div className="mt-1 text-sm font-semibold italic text-[#8b8a84]">
+                      {s.traineeName || s.trainee} {s.traineeVid ? `(${s.traineeVid})` : ""}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => handleEdit(s)}
+                      className="cursor-pointer rounded-full border border-[#dddbd6] bg-white px-3 py-1 text-xs font-black text-[#4b4b48] hover:bg-[#f3f3f1]"
+                    >
+                      edit
+                    </button>
+
+                    <button
+                      onClick={() => handleDelete(s)}
+                      className="cursor-pointer rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-black text-red-600 hover:bg-red-100"
+                    >
+                      delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
 
         <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
           <Card>
