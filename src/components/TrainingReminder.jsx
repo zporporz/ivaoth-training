@@ -3,6 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { getClientSession } from "../lib/authSession";
 
+const REMINDER_WINDOWS = [
+  { id: "1d", label: "1 day", minutes: 24 * 60, windowMinutes: 10 },
+  { id: "1h", label: "1 hour", minutes: 60, windowMinutes: 5 },
+  { id: "30m", label: "30 minutes", minutes: 30, windowMinutes: 5 },
+];
+
 function parseSessionDate(session) {
   if (!session?.date || !session?.time) return null;
 
@@ -16,13 +22,22 @@ function parseSessionDate(session) {
   return new Date(`${session.date}T${hour}:${minute}:00Z`);
 }
 
-function getReminderKey(session) {
-  return `training-reminder-dismissed-${session.id || session.firestoreId}-30m`;
+function getReminderKey(session, reminder) {
+  return `training-reminder-dismissed-${session.id || session.firestoreId}-${reminder.id}`;
+}
+
+function getActiveReminder(diffMinutes) {
+  return REMINDER_WINDOWS.find(
+    (reminder) =>
+      diffMinutes <= reminder.minutes &&
+      diffMinutes >= reminder.minutes - reminder.windowMinutes
+  );
 }
 
 export default function TrainingReminder({ sessions = [] }) {
   const [visible, setVisible] = useState(false);
   const [activeSession, setActiveSession] = useState(null);
+  const [activeReminder, setActiveReminder] = useState(null);
   const [dismissed, setDismissed] = useState([]);
   const [doNotShowAgain, setDoNotShowAgain] = useState(false);
 
@@ -31,8 +46,8 @@ export default function TrainingReminder({ sessions = [] }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const savedDismissed = Object.keys(localStorage).filter(
-      (key) => key.startsWith("training-reminder-dismissed-")
+    const savedDismissed = Object.keys(localStorage).filter((key) =>
+      key.startsWith("training-reminder-dismissed-")
     );
 
     setDismissed(savedDismissed);
@@ -55,14 +70,15 @@ export default function TrainingReminder({ sessions = [] }) {
 
         const diffMs = sessionDate.getTime() - now.getTime();
         const diffMinutes = Math.floor(diffMs / 60000);
-        const reminderKey = getReminderKey(session);
+        const reminder = getActiveReminder(diffMinutes);
 
-        if (
-          diffMinutes <= 30 &&
-          diffMinutes >= 0 &&
-          !dismissed.includes(reminderKey)
-        ) {
+        if (!reminder) continue;
+
+        const reminderKey = getReminderKey(session, reminder);
+
+        if (!dismissed.includes(reminderKey)) {
           setActiveSession(session);
+          setActiveReminder(reminder);
           setDoNotShowAgain(false);
           setVisible(true);
           break;
@@ -77,9 +93,9 @@ export default function TrainingReminder({ sessions = [] }) {
     return () => clearInterval(interval);
   }, [sessions, loginSession, dismissed]);
 
-  if (!visible || !activeSession) return null;
+  if (!visible || !activeSession || !activeReminder) return null;
 
-  const reminderKey = getReminderKey(activeSession);
+  const reminderKey = getReminderKey(activeSession, activeReminder);
 
   function dismissReminder() {
     if (doNotShowAgain && typeof window !== "undefined") {
@@ -90,6 +106,18 @@ export default function TrainingReminder({ sessions = [] }) {
       prev.includes(reminderKey) ? prev : [...prev, reminderKey]
     );
     setVisible(false);
+  }
+
+  function openMyTraining() {
+    if (doNotShowAgain && typeof window !== "undefined") {
+      localStorage.setItem(reminderKey, "true");
+    }
+
+    setDismissed((prev) =>
+      prev.includes(reminderKey) ? prev : [...prev, reminderKey]
+    );
+
+    window.location.href = "/my-training";
   }
 
   return (
@@ -106,7 +134,7 @@ export default function TrainingReminder({ sessions = [] }) {
 
         <div className="mt-5 rounded-3xl border border-[#ececea] bg-[#fbfbfa] p-5">
           <div className="text-2xl font-black text-[#242421]">
-            Starts in 30 minutes
+            Starts in {activeReminder.label}
           </div>
 
           <div className="mt-3 text-lg font-bold text-[#4b4b48]">
@@ -145,7 +173,7 @@ export default function TrainingReminder({ sessions = [] }) {
             onChange={(e) => setDoNotShowAgain(e.target.checked)}
             className="h-4 w-4 cursor-pointer accent-[#0a2342]"
           />
-          Don&apos;t show this reminder again for this session
+          Don&apos;t show this {activeReminder.label} reminder again for this session
         </label>
 
         <div className="mt-7 flex items-center justify-end gap-3">
@@ -157,13 +185,7 @@ export default function TrainingReminder({ sessions = [] }) {
           </button>
 
           <button
-            onClick={() => {
-              if (doNotShowAgain && typeof window !== "undefined") {
-                localStorage.setItem(reminderKey, "true");
-              }
-
-              window.location.href = "/my-training";
-            }}
+            onClick={openMyTraining}
             className="rounded-full bg-[#0a2342] px-5 py-3 text-sm font-black text-white transition hover:bg-[#163b6d]"
           >
             Open My Training
