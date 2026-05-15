@@ -16,7 +16,10 @@ import {
 import ProtectedStaffPage from "../../../components/ProtectedStaffPage";
 import Navbar from "../../../components/Navbar";
 import Card from "../../../components/ui/Card";
+import { getClientSession } from "../../../lib/authSession";
 import { db } from "../../../lib/firebase";
+
+const WEBMASTER_VID = "739898";
 
 const emptyForm = {
   vid: "",
@@ -31,6 +34,7 @@ const emptyForm = {
 function TrainingStaffManager() {
   const [staffList, setStaffList] = useState([]);
   const [editingId, setEditingId] = useState(null);
+  const [session, setSession] = useState(null);
   const [form, setForm] = useState({
     ...emptyForm,
     vid: "739898",
@@ -40,7 +44,15 @@ function TrainingStaffManager() {
     bio: "IVAO Thailand Training Portal Webmaster",
   });
 
+  const isWebmaster = String(session?.vid || "") === WEBMASTER_VID;
+
   useEffect(() => {
+    setSession(getClientSession());
+  }, []);
+
+  useEffect(() => {
+    if (!isWebmaster) return;
+
     const q = query(collection(db, "trainingStaff"), orderBy("position", "asc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -48,13 +60,15 @@ function TrainingStaffManager() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [isWebmaster]);
 
   function updateForm(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
   async function handleSave() {
+    if (!isWebmaster) return;
+
     if (!form.vid || !form.name) {
       alert("VID และ Name จำเป็นต้องกรอก");
       return;
@@ -85,10 +99,13 @@ function TrainingStaffManager() {
   }
 
   async function handleDelete(id) {
+    if (!isWebmaster) return;
     await deleteDoc(doc(db, "trainingStaff", id));
   }
 
   function handleEdit(staff) {
+    if (!isWebmaster) return;
+
     setEditingId(staff.firestoreId);
     setForm({
       vid: staff.vid || "",
@@ -99,6 +116,31 @@ function TrainingStaffManager() {
       bio: staff.bio || "",
       active: staff.active !== false,
     });
+  }
+
+  if (!isWebmaster) {
+    return (
+      <main className="relative z-10 min-h-screen px-6 py-6">
+        <Navbar />
+
+        <section className="mx-auto max-w-[900px] py-20">
+          <Card>
+            <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
+              restricted access
+            </div>
+
+            <h1 className="mt-3 text-4xl font-black tracking-[-0.04em]">
+              <span className="font-normal italic text-[#4b4b48]">Webmaster</span>{" "}
+              access only<span className="text-[#ff5a1f]">.</span>
+            </h1>
+
+            <div className="mt-5 text-base font-semibold text-[#4b4b48]">
+              This page is restricted to the IVAO Thailand Training Portal webmaster.
+            </div>
+          </Card>
+        </section>
+      </main>
+    );
   }
 
   return (
@@ -125,15 +167,10 @@ function TrainingStaffManager() {
 
             <div className="mt-5 space-y-4">
               <input value={form.vid} onChange={(e) => updateForm("vid", e.target.value.replace(/\D/g, ""))} placeholder="VID" className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none" />
-
               <input value={form.name} onChange={(e) => updateForm("name", e.target.value)} placeholder="Full name" className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none" />
-
               <input value={form.position} onChange={(e) => updateForm("position", e.target.value)} placeholder="Position e.g. TH-DT2" className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold uppercase outline-none" />
-
               <input value={form.division} onChange={(e) => updateForm("division", e.target.value)} placeholder="Division" className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold uppercase outline-none" />
-
               <input value={form.avatarUrl} onChange={(e) => updateForm("avatarUrl", e.target.value)} placeholder="Avatar URL e.g. /staff/avatars/739898.jpg" className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none" />
-
               <textarea value={form.bio} onChange={(e) => updateForm("bio", e.target.value)} placeholder="Bio / description" rows={4} className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none" />
 
               <label className="flex items-center gap-3 rounded-2xl border border-[#ececea] bg-[#fbfbfa] px-4 py-3 font-bold text-[#4b4b48]">
