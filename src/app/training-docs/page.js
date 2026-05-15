@@ -4,13 +4,12 @@ import Navbar from "../../components/Navbar";
 import { getClientSession } from "../../lib/authSession";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "../../lib/firebase";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 const WEBMASTER_VID = "739898";
 
 export default function TrainingDocsPage() {
   const [docs, setDocs] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("All");
   const session = getClientSession();
   const isWebmaster = String(session?.vid || "") === WEBMASTER_VID;
 
@@ -20,25 +19,19 @@ export default function TrainingDocsPage() {
     const q = query(collection(db, "trainingDocs"), orderBy("order", "asc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setDocs(snapshot.docs.map((item) => ({ firestoreId: item.id, ...item.data() })));
+      setDocs(
+        snapshot.docs
+          .map((item) => ({ firestoreId: item.id, ...item.data() }))
+          .filter((item) => item.active !== false)
+      );
     });
 
     return () => unsubscribe();
   }, [isWebmaster]);
 
-  const filteredDocs = useMemo(() => {
-    return docs.filter((item) => {
-      if (item.active === false) return false;
-      if (selectedCategory === "All") return true;
-      return item.category === selectedCategory;
-    });
-  }, [docs, selectedCategory]);
-
   if (!isWebmaster) {
     return <main className="relative z-10 min-h-screen px-6 py-6"><Navbar /></main>;
   }
-
-  const categories = ["All", "Radar", "Phraseology", "Charts", "IFR", "Exams"];
 
   return (
     <main className="relative z-10 min-h-screen px-6 py-6">
@@ -62,24 +55,12 @@ export default function TrainingDocsPage() {
           </div>
 
           <div className="rounded-full border border-[#ececea] bg-white px-5 py-3 text-sm font-black text-[#4b4b48] shadow-sm">
-            {filteredDocs.length} docs
+            {docs.length} docs
           </div>
         </div>
 
-        <div className="mb-8 flex flex-wrap gap-3">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`rounded-full border px-5 py-2 text-sm font-black transition ${selectedCategory === category ? "border-[#0a2342] bg-[#0a2342] text-white" : "border-[#dddbd6] bg-white/70 text-[#4b4b48] hover:bg-[#f3f3f1]"}`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-
         <div className="grid gap-6 lg:grid-cols-3">
-          {filteredDocs.map((doc) => (
+          {docs.map((doc) => (
             <a
               key={doc.firestoreId}
               href={doc.url}
@@ -105,10 +86,6 @@ export default function TrainingDocsPage() {
 
               <div className="p-6">
                 <div className="flex items-center gap-2">
-                  <div className="rounded-full bg-[#0a2342] px-3 py-1 text-xs font-black text-white">
-                    {doc.category}
-                  </div>
-
                   <div className="rounded-full border border-[#dddbd6] bg-[#fbfbfa] px-3 py-1 text-xs font-black text-[#4b4b48]">
                     {doc.difficulty}
                   </div>
