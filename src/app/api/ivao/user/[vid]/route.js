@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+const IVAO_TOKEN_URL = "https://api.ivao.aero/v2/oauth/token";
 const IVAO_USER_URL = "https://api.ivao.aero/v2/users";
 
 function cleanName(value) {
@@ -52,8 +53,55 @@ function getFullName(user) {
     cleanName(user.profile?.fullName) ||
     cleanName(user.profile?.full_name) ||
     cleanName(user.publicNickname) ||
+    cleanName(user.username) ||
     null
   );
+}
+
+async function getClientCredentialsToken() {
+  const clientId = process.env.IVAO_CLIENT_ID;
+  const clientSecret = process.env.IVAO_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) return null;
+
+  const response = await fetch(IVAO_TOKEN_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: clientId,
+      client_secret: clientSecret,
+    }),
+    cache: "no-store",
+  });
+
+  if (!response.ok) return null;
+
+  const data = await response.json();
+  return data.access_token || null;
+}
+
+async function fetchJson(url, token) {
+  const response = await fetch(url, {
+    headers: {
+      Accept: "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) return null;
+  return response.json();
+}
+
+function normalizeUserPayload(payload) {
+  if (!payload) return null;
+  if (Array.isArray(payload)) return payload[0] || null;
+  if (Array.isArray(payload.data)) return payload.data[0] || null;
+  return payload.data || payload.user || payload;
 }
 
 export async function GET(_request, { params }) {
@@ -64,24 +112,28 @@ export async function GET(_request, { params }) {
     return NextResponse.json({ error: "Missing VID" }, { status: 400 });
   }
 
-  const response = await fetch(`${IVAO_USER_URL}/${cleanVid}`, {
-    headers: { Accept: "application/json" },
-    next: { revalidate: 60 * 60 },
-  });
+  const token = await getClientCredentialsToken();
+  const urls = [
+    `${IVAO_USER_URL}/${cleanVid}`,
+    `${IVAO_USER_URL}?id=${cleanVid}`,
+    `${IVAO_USER_URL}?vid=${cleanVid}`,
+  ];
 
-  if (!response.ok) {
-    return NextResponse.json({ error: "User not found" }, { status: response.status });
+  for (const url of urls) {
+    const payload = await fetchJson(url, token);
+    const user = normalizeUserPayload(payload);
+    const name = getFullName(user || {});
+
+    if (name) {
+      return NextResponse.json({
+        vid: cleanVid,
+        name,
+      });
+    }
   }
 
-  const user = await response.json();
-  const name = getFullName(user);
-
-  if (!name) {
-    return NextResponse.json({ error: "User name not available" }, { status: 404 });
-  }
-
-  return NextResponse.json({
-    vid: cleanVid,
-    name,
-  });
+  return NextResponse.json(
+    { error: "User not found or not accessible from IVAO API" },
+    { status: 404 }
+  );
 }
