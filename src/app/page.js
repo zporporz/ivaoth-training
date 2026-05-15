@@ -11,6 +11,7 @@ import UpNext from "../components/UpNext";
 
 import programs from "../data/programs";
 import { db } from "../lib/firebase";
+import { getClientSession } from "../lib/authSession";
 
 const monthNames = [
   "jan", "feb", "mar", "apr", "may", "jun",
@@ -43,10 +44,13 @@ function buildUpNextFromSessions(sessions) {
 export default function Home() {
   const [dbSessions, setDbSessions] = useState([]);
   const [activeGroup, setActiveGroup] = useState("ATC");
+  const [session, setSession] = useState(null);
 
   const liveUpNext = buildUpNextFromSessions(dbSessions);
 
   useEffect(() => {
+    setSession(getClientSession());
+
     const q = query(collection(db, "trainingSessions"), orderBy("date", "asc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -71,16 +75,30 @@ export default function Home() {
       <TrainingReminder sessions={dbSessions} />
 
       <section className="mx-auto max-w-[1480px] py-10">
-        <div className="mb-7">
-          <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
-            ivao-th / training department / training schedule
+        <div className="mb-7 flex items-start justify-between gap-8">
+          <div>
+            <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
+              ivao-th / training department / training schedule
+            </div>
+
+            <h1 className="mt-3 text-5xl font-black tracking-[-0.04em]">
+              <span className="font-normal italic text-[#4b4b48]">Training</span>{" "}
+              schedule — sessions, check-ups, and exams
+              <span className="text-[#ff5a1f]">.</span>
+            </h1>
           </div>
 
-          <h1 className="mt-3 text-5xl font-black tracking-[-0.04em]">
-            <span className="font-normal italic text-[#4b4b48]">Training</span>{" "}
-            schedule — sessions, check-ups, and exams
-            <span className="text-[#ff5a1f]">.</span>
-          </h1>
+          {session && (
+            <a
+              href="https://ivao.aero/training/training/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group mt-5 inline-flex items-center gap-3 rounded-full bg-[#ff5a1f] px-7 py-4 text-base font-black text-white shadow-[0_10px_30px_rgba(255,90,31,0.35)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(255,90,31,0.45)]"
+            >
+              request training
+              <span className="transition group-hover:translate-x-1">→</span>
+            </a>
+          )}
         </div>
 
         <div className="mb-7 flex flex-col items-center">
@@ -119,12 +137,12 @@ export default function Home() {
           </div>
 
           <div
-  className={`grid w-full gap-4 ${
-    activeGroup === "ATC"
-      ? "grid-cols-6"
-      : "grid-cols-5"
-  }`}
->
+            className={`grid w-full gap-4 ${
+              activeGroup === "ATC"
+                ? "grid-cols-6"
+                : "grid-cols-5"
+            }`}
+          >
             {filteredPrograms.map((p) => (
               <ProgramCard key={p.code} p={p} sessions={dbSessions} />
             ))}
