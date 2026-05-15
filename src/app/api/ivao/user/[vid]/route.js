@@ -12,7 +12,22 @@ function pickFirst(...values) {
   return values.find((value) => value !== undefined && value !== null && value !== "");
 }
 
-function getFullName(user) {
+function isGenericName(value, vid) {
+  const name = cleanName(value).toLowerCase();
+  const cleanVid = String(vid || "").toLowerCase();
+
+  return (
+    !name ||
+    name === "user" ||
+    name === "ivao user" ||
+    name === "unknown" ||
+    name === "unknown user" ||
+    name === cleanVid ||
+    name === `vid ${cleanVid}`
+  );
+}
+
+function getFullName(user, vid) {
   const firstName = pickFirst(
     user.firstName,
     user.first_name,
@@ -41,21 +56,20 @@ function getFullName(user) {
     user.personal?.last_name
   );
 
-  const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
+  const candidates = [
+    [firstName, lastName].filter(Boolean).join(" ").trim(),
+    user.fullName,
+    user.full_name,
+    user.realName,
+    user.real_name,
+    user.name,
+    user.profile?.fullName,
+    user.profile?.full_name,
+    user.publicNickname,
+    user.username,
+  ];
 
-  return (
-    cleanName(fullName) ||
-    cleanName(user.fullName) ||
-    cleanName(user.full_name) ||
-    cleanName(user.realName) ||
-    cleanName(user.real_name) ||
-    cleanName(user.name) ||
-    cleanName(user.profile?.fullName) ||
-    cleanName(user.profile?.full_name) ||
-    cleanName(user.publicNickname) ||
-    cleanName(user.username) ||
-    null
-  );
+  return candidates.map(cleanName).find((name) => !isGenericName(name, vid)) || null;
 }
 
 async function getClientCredentialsToken() {
@@ -122,7 +136,7 @@ export async function GET(_request, { params }) {
   for (const url of urls) {
     const payload = await fetchJson(url, token);
     const user = normalizeUserPayload(payload);
-    const name = getFullName(user || {});
+    const name = getFullName(user || {}, cleanVid);
 
     if (name) {
       return NextResponse.json({
@@ -133,7 +147,7 @@ export async function GET(_request, { params }) {
   }
 
   return NextResponse.json(
-    { error: "User not found or not accessible from IVAO API" },
+    { error: "User name is not available from IVAO API" },
     { status: 404 }
   );
 }
