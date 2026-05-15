@@ -1,66 +1,44 @@
 "use client";
 
 import Navbar from "../../components/Navbar";
-import Card from "../../components/ui/Card";
 import { getClientSession } from "../../lib/authSession";
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { db } from "../../lib/firebase";
+import { useEffect, useMemo, useState } from "react";
 
 const WEBMASTER_VID = "739898";
 
-const demoDocs = [
-  {
-    title: "ILS Basics & Localizer Intercept",
-    category: "Approach",
-    type: "YouTube",
-    difficulty: "Beginner",
-    thumbnail:
-      "https://img.youtube.com/vi/6nZ5qSWf4YQ/maxresdefault.jpg",
-  },
-  {
-    title: "Radar Vectoring Fundamentals",
-    category: "Radar",
-    type: "Website",
-    difficulty: "Intermediate",
-    thumbnail:
-      "https://images.unsplash.com/photo-1529074963764-98f45c47344b?q=80&w=1200&auto=format&fit=crop",
-  },
-  {
-    title: "RNAV vs RNP Explained",
-    category: "IFR",
-    type: "Training Docs",
-    difficulty: "Advanced",
-    thumbnail:
-      "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=1200&auto=format&fit=crop",
-  },
-];
-
 export default function TrainingDocsPage() {
+  const [docs, setDocs] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const session = getClientSession();
   const isWebmaster = String(session?.vid || "") === WEBMASTER_VID;
 
+  useEffect(() => {
+    if (!isWebmaster) return;
+
+    const q = query(collection(db, "trainingDocs"), orderBy("order", "asc"));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setDocs(snapshot.docs.map((item) => ({ firestoreId: item.id, ...item.data() })));
+    });
+
+    return () => unsubscribe();
+  }, [isWebmaster]);
+
+  const filteredDocs = useMemo(() => {
+    return docs.filter((item) => {
+      if (item.active === false) return false;
+      if (selectedCategory === "All") return true;
+      return item.category === selectedCategory;
+    });
+  }, [docs, selectedCategory]);
+
   if (!isWebmaster) {
-    return (
-      <main className="relative z-10 min-h-screen px-6 py-6">
-        <Navbar />
-
-        <section className="mx-auto max-w-[1000px] py-24">
-          <Card>
-            <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
-              preview restricted
-            </div>
-
-            <h1 className="mt-3 text-5xl font-black tracking-[-0.04em]">
-              <span className="font-normal italic text-[#4b4b48]">Training</span>{" "}
-              Docs<span className="text-[#ff5a1f]">.</span>
-            </h1>
-
-            <div className="mt-5 text-base font-semibold text-[#4b4b48]">
-              This preview is currently visible only to the webmaster.
-            </div>
-          </Card>
-        </section>
-      </main>
-    );
+    return <main className="relative z-10 min-h-screen px-6 py-6"><Navbar /></main>;
   }
+
+  const categories = ["All", "Approach", "Radar", "Phraseology", "Charts", "IFR", "Exams"];
 
   return (
     <main className="relative z-10 min-h-screen px-6 py-6">
@@ -74,34 +52,26 @@ export default function TrainingDocsPage() {
             </div>
 
             <h1 className="mt-3 text-6xl font-black tracking-[-0.05em] leading-none">
-              <span className="font-normal italic text-[#4b4b48]">Training</span>{" "}
-              Docs<span className="text-[#ff5a1f]">.</span>
+              <span className="font-normal italic text-[#4b4b48]">Training</span> Docs
+              <span className="text-[#ff5a1f]">.</span>
             </h1>
 
             <div className="mt-5 max-w-2xl text-lg font-semibold text-[#6d6d68]">
-              A centralized knowledge hub for IVAO Thailand training resources,
-              procedures, radar tutorials, phraseology, and examination preparation.
+              Centralized training materials, tutorials, references, and IVAO Thailand learning resources.
             </div>
           </div>
 
           <div className="rounded-full border border-[#ececea] bg-white px-5 py-3 text-sm font-black text-[#4b4b48] shadow-sm">
-            Webmaster Preview
+            {filteredDocs.length} docs
           </div>
         </div>
 
         <div className="mb-8 flex flex-wrap gap-3">
-          {[
-            "All",
-            "Approach",
-            "Radar",
-            "Phraseology",
-            "Charts",
-            "IFR",
-            "Exams",
-          ].map((category) => (
+          {categories.map((category) => (
             <button
               key={category}
-              className="rounded-full border border-[#dddbd6] bg-white/70 px-5 py-2 text-sm font-black text-[#4b4b48] transition hover:bg-[#0a2342] hover:text-white"
+              onClick={() => setSelectedCategory(category)}
+              className={`rounded-full border px-5 py-2 text-sm font-black transition ${selectedCategory === category ? "border-[#0a2342] bg-[#0a2342] text-white" : "border-[#dddbd6] bg-white/70 text-[#4b4b48] hover:bg-[#f3f3f1]"}`}
             >
               {category}
             </button>
@@ -109,18 +79,22 @@ export default function TrainingDocsPage() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          {demoDocs.map((doc, index) => (
+          {filteredDocs.map((doc) => (
             <a
-              key={index}
-              href="#"
+              key={doc.firestoreId}
+              href={doc.url}
+              target="_blank"
+              rel="noopener noreferrer"
               className="group overflow-hidden rounded-[2rem] border border-[#ececea] bg-white shadow-sm transition duration-300 hover:-translate-y-2 hover:border-[#0a2342] hover:shadow-2xl"
             >
-              <div className="relative h-[230px] overflow-hidden">
-                <img
-                  src={doc.thumbnail}
-                  alt={doc.title}
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                />
+              <div className="relative h-[230px] overflow-hidden bg-[#f3f3f1]">
+                {doc.thumbnailUrl ? (
+                  <img src={doc.thumbnailUrl} alt={doc.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-lg font-black text-[#8b8a84]">
+                    NO THUMBNAIL
+                  </div>
+                )}
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
@@ -144,7 +118,13 @@ export default function TrainingDocsPage() {
                   {doc.title}
                 </div>
 
-                <div className="mt-4 flex items-center justify-between text-sm font-bold text-[#8b8a84]">
+                {doc.description && (
+                  <div className="mt-3 text-sm font-semibold text-[#6d6d68]">
+                    {doc.description}
+                  </div>
+                )}
+
+                <div className="mt-5 flex items-center justify-between text-sm font-bold text-[#8b8a84]">
                   <span>Open learning resource</span>
                   <span>↗</span>
                 </div>
