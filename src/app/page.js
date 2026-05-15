@@ -93,7 +93,7 @@ export default function Home() {
               href="https://ivao.aero/training/training/"
               target="_blank"
               rel="noopener noreferrer"
-              className="group mt-5 inline-flex items-center gap-3 rounded-full bg-[#ff5a1f] px-7 py-4 text-base font-black text-white shadow-[0_10px_30px_rgba(255,90,31,0.35)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(255,90,31,0.45)]"
+              className="group mt-5 inline-flex items-center gap-3 rounded-full bg-[#ff5a1f] px-7 py-4 text-base font-semibold tracking-[-0.02em] text-white shadow-[0_10px_30px_rgba(255,90,31,0.35)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(255,90,31,0.45)]"
             >
               request training
               <span className="transition group-hover:translate-x-1">→</span>
