@@ -93,9 +93,9 @@ export default function Home() {
               href="https://ivao.aero/training/training/"
               target="_blank"
               rel="noopener noreferrer"
-              className="group mt-5 inline-flex items-center gap-3 rounded-full bg-[#ff5a1f] px-7 py-4 text-base font-semibold tracking-[-0.02em] text-white shadow-[0_10px_30px_rgba(255,90,31,0.35)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(255,90,31,0.45)]"
+              className="group mt-5 inline-flex items-center gap-3 rounded-full bg-[#ff5a1f] px-6 py-3.5 text-sm font-bold uppercase tracking-[0.12em] text-white shadow-[0_14px_35px_rgba(255,90,31,0.28)] transition duration-300 hover:-translate-y-1 hover:bg-[#f04f18] hover:shadow-[0_18px_45px_rgba(255,90,31,0.42)]"
             >
-              request training
+              REQUEST TRAINING
               <span className="transition group-hover:translate-x-1">→</span>
             </a>
           )}
