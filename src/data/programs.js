@@ -10,16 +10,6 @@ const programs = [
   },
 
   {
-    code: "FSx",
-    name: "Pilot Student Training",
-    desc: "FS1 - FS3 combined training",
-    color: "#f97316",
-    tint: "#ffedd5",
-    tag: "pilot",
-    group: "Pilot",
-  },
-
-  {
     code: "ADC",
     name: "Aerodrome Controller",
     desc: "Tower · ground · clearance",
@@ -67,6 +57,56 @@ const programs = [
     tint: "#fde6e6",
     tag: "check",
     group: "ATC",
+  },
+
+  {
+    code: "FSx",
+    name: "Pilot Student Training",
+    desc: "FS1 - FS3 combined training",
+    color: "#f97316",
+    tint: "#ffedd5",
+    tag: "pilot",
+    group: "Pilot",
+  },
+
+  {
+    code: "PP",
+    name: "Private Pilot",
+    desc: "Private pilot practical training",
+    color: "#b45309",
+    tint: "#fef3c7",
+    tag: "pilot",
+    group: "Pilot",
+  },
+
+  {
+    code: "SPP",
+    name: "Senior Private Pilot",
+    desc: "Senior private pilot training",
+    color: "#a16207",
+    tint: "#fef9c3",
+    tag: "pilot",
+    group: "Pilot",
+  },
+
+  {
+    code: "CP",
+    name: "Commercial Pilot",
+    desc: "Commercial pilot training",
+    color: "#1d4ed8",
+    tint: "#dbeafe",
+    tag: "pilot",
+    group: "Pilot",
+  },
+
+  {
+    code: "ATP",
+    name: "Airline Transport Pilot",
+    desc: "Airline transport pilot training",
+    color: "#0f172a",
+    tint: "#e2e8f0",
+    tag: "pilot",
+    group: "Pilot",
   },
 ];
 
