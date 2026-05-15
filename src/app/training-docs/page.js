@@ -6,15 +6,12 @@ import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { useEffect, useState } from "react";
 
-const WEBMASTER_VID = "739898";
-
 export default function TrainingDocsPage() {
   const [docs, setDocs] = useState([]);
   const session = getClientSession();
-  const isWebmaster = String(session?.vid || "") === WEBMASTER_VID;
 
   useEffect(() => {
-    if (!isWebmaster) return;
+    if (!session) return;
 
     const q = query(collection(db, "trainingDocs"), orderBy("order", "asc"));
 
@@ -27,10 +24,24 @@ export default function TrainingDocsPage() {
     });
 
     return () => unsubscribe();
-  }, [isWebmaster]);
+  }, [session]);
 
-  if (!isWebmaster) {
-    return <main className="relative z-10 min-h-screen px-6 py-6"><Navbar /></main>;
+  if (!session) {
+    return (
+      <main className="relative z-10 min-h-screen px-6 py-6">
+        <Navbar />
+
+        <section className="mx-auto max-w-[900px] py-24 text-center">
+          <div className="text-5xl font-black tracking-[-0.04em]">
+            Login required<span className="text-[#ff5a1f]">.</span>
+          </div>
+
+          <div className="mt-5 text-lg font-semibold text-[#6d6d68]">
+            Please login with IVAO to access Training Docs.
+          </div>
+        </section>
+      </main>
+    );
   }
 
   return (
@@ -72,9 +83,7 @@ export default function TrainingDocsPage() {
                 {doc.thumbnailUrl ? (
                   <img src={doc.thumbnailUrl} alt={doc.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-lg font-black text-[#8b8a84]">
-                    NO THUMBNAIL
-                  </div>
+                  <img src="/training-docs/default-cover.png" alt="Training Docs" className="h-full w-full object-cover" />
                 )}
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
@@ -85,13 +94,7 @@ export default function TrainingDocsPage() {
               </div>
 
               <div className="p-6">
-                <div className="flex items-center gap-2">
-                  <div className="rounded-full border border-[#dddbd6] bg-[#fbfbfa] px-3 py-1 text-xs font-black text-[#4b4b48]">
-                    {doc.difficulty}
-                  </div>
-                </div>
-
-                <div className="mt-5 text-2xl font-black leading-tight tracking-[-0.03em] transition group-hover:text-[#0a2342]">
+                <div className="mt-2 text-2xl font-black leading-tight tracking-[-0.03em] transition group-hover:text-[#0a2342]">
                   {doc.title}
                 </div>
 
