@@ -5,7 +5,18 @@ const programs = [
     desc: "AS1 - AS3 combined training",
     color: "#2563eb",
     tint: "#e0eaff",
-    tag: "student",
+    tag: "atc",
+    group: "ATC",
+  },
+
+  {
+    code: "FSx",
+    name: "Pilot Student Training",
+    desc: "FS1 - FS3 combined training",
+    color: "#f97316",
+    tint: "#ffedd5",
+    tag: "pilot",
+    group: "Pilot",
   },
 
   {
@@ -15,6 +26,7 @@ const programs = [
     color: "#16a34a",
     tint: "#e3f7ea",
     tag: "rating",
+    group: "ATC",
   },
 
   {
@@ -24,6 +36,7 @@ const programs = [
     color: "#d97706",
     tint: "#fde9c8",
     tag: "rating",
+    group: "ATC",
   },
 
   {
@@ -33,6 +46,7 @@ const programs = [
     color: "#7c3aed",
     tint: "#ece1ff",
     tag: "rating",
+    group: "ATC",
   },
 
   {
@@ -42,6 +56,7 @@ const programs = [
     color: "#9333ea",
     tint: "#f3e8ff",
     tag: "senior",
+    group: "ATC",
   },
 
   {
@@ -51,6 +66,7 @@ const programs = [
     color: "#dc2626",
     tint: "#fde6e6",
     tag: "check",
+    group: "ATC",
   },
 ];
 
