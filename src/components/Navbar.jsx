@@ -44,15 +44,6 @@ export default function Navbar() {
             Training List
           </a>
 
-          <a
-            href="https://ivao.aero/training/training/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-full border border-[#0a2342] bg-white px-4 py-2 text-base font-extrabold text-[#0a2342] transition hover:bg-[#0a2342] hover:text-white"
-          >
-            Request Training
-          </a>
-
           {session.hasTrainingAccess && (
             <>
               <a href="/staff/training-docs" className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]">
