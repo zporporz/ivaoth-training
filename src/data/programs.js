@@ -2,55 +2,55 @@ const programs = [
   {
     code: "ASx",
     name: "ATC Student Training",
-    desc: "AS1 - AS3 combined training",
-    color: "#2563eb",
+    desc: "Essential Knowledge for ATC",
+    color: "#ff0000",
     tint: "#e0eaff",
-    tag: "student",
+    tag: "Student",
   },
 
   {
     code: "ADC",
     name: "Aerodrome Controller",
-    desc: "Tower · ground · clearance",
+    desc: "ADC Practical Mock-up",
     color: "#16a34a",
     tint: "#e3f7ea",
-    tag: "rating",
+    tag: "Rating",
   },
 
   {
     code: "APC",
     name: "Approach Controller",
-    desc: "Approach · radar",
-    color: "#d97706",
+    desc: "APC Practical Mock-up",
+    color: "#2000ff",
     tint: "#fde9c8",
-    tag: "rating",
+    tag: "Rating",
   },
 
   {
     code: "ACC",
     name: "Center Controller",
-    desc: "En-route · center sector",
-    color: "#7c3aed",
+    desc: "ACC Practical Mock-up",
+    color: "#5dbb00",
     tint: "#ece1ff",
-    tag: "rating",
+    tag: "Rating",
   },
 
   {
     code: "SEC",
     name: "Senior Controller",
-    desc: "Senior ATC training",
-    color: "#9333ea",
+    desc: "SEC Practical Mock-up",
+    color: "#007474",
     tint: "#f3e8ff",
-    tag: "senior",
+    tag: "Senior",
   },
 
   {
     code: "GCA",
     name: "GCA Check",
-    desc: "Final practical checkride",
+    desc: "Guest Controller Approval",
     color: "#dc2626",
     tint: "#fde6e6",
-    tag: "check",
+    tag: "Check",
   },
 ];
 
