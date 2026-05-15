@@ -19,30 +19,110 @@ function cleanName(value) {
   return String(value).replace(/\s*\(?\d{4,}\)?\s*$/g, "").trim();
 }
 
+function pickFirst(...values) {
+  return values.find((value) => value !== undefined && value !== null && value !== "");
+}
+
 function getFullName(user) {
-  const firstName = user.firstName || user.first_name || user.firstname;
-  const lastName = user.lastName || user.last_name || user.lastname;
+  const firstName = pickFirst(
+    user.firstName,
+    user.first_name,
+    user.firstname,
+    user.firstNames,
+    user.first_names,
+    user.firstnames,
+    user.givenName,
+    user.given_name,
+    user.profile?.firstName,
+    user.profile?.first_name,
+    user.personal?.firstName,
+    user.personal?.first_name
+  );
+
+  const lastName = pickFirst(
+    user.lastName,
+    user.last_name,
+    user.lastname,
+    user.surname,
+    user.familyName,
+    user.family_name,
+    user.profile?.lastName,
+    user.profile?.last_name,
+    user.personal?.lastName,
+    user.personal?.last_name
+  );
+
   const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
 
   return (
     cleanName(fullName) ||
-    cleanName(user.name) ||
     cleanName(user.fullName) ||
+    cleanName(user.full_name) ||
+    cleanName(user.realName) ||
+    cleanName(user.real_name) ||
+    cleanName(user.name) ||
+    cleanName(user.profile?.fullName) ||
+    cleanName(user.profile?.full_name) ||
     cleanName(user.publicNickname) ||
     `VID ${user.id}`
   );
 }
 
 function getStaffPositionName(position) {
-  const staffPosition = position?.staffPosition || position;
+  const staffPosition = position?.staffPosition || position?.staff_position || position;
+  const departmentTeam =
+    staffPosition?.departmentTeam ||
+    staffPosition?.department_team ||
+    position?.departmentTeam ||
+    position?.department_team;
+  const division = position?.division || position?.divisionStaffPosition?.division;
+
+  const code = pickFirst(
+    staffPosition?.shortName,
+    staffPosition?.short_name,
+    staffPosition?.name,
+    staffPosition?.id,
+    staffPosition?.code,
+    position?.shortName,
+    position?.short_name,
+    position?.name,
+    position?.id,
+    position?.code
+  );
+
+  const divisionId = pickFirst(
+    division?.id,
+    division?.code,
+    position?.divisionId,
+    position?.division_id
+  );
+
+  if (code && divisionId && !String(code).includes(String(divisionId))) {
+    return `${divisionId}-${code}`;
+  }
+
+  return code || null;
+}
+
+function isTrainingStaffPosition(position) {
+  const staffPosition = position?.staffPosition || position?.staff_position || position;
+  const departmentTeam =
+    staffPosition?.departmentTeam ||
+    staffPosition?.department_team ||
+    position?.departmentTeam ||
+    position?.department_team;
+  const department = departmentTeam?.department || position?.department;
+  const departmentId = String(department?.id || department?.code || "").toUpperCase();
+  const teamName = String(departmentTeam?.name || departmentTeam?.id || "").toUpperCase();
+  const positionName = String(getStaffPositionName(position) || "").toUpperCase();
 
   return (
-    staffPosition?.shortName ||
-    staffPosition?.name ||
-    staffPosition?.id ||
-    position?.shortName ||
-    position?.name ||
-    null
+    departmentId === "TRA" ||
+    departmentId.includes("TRAIN") ||
+    teamName.includes("TRAIN") ||
+    positionName.includes("TRAIN") ||
+    positionName.includes("TH-T") ||
+    positionName.includes("TRA")
   );
 }
 
@@ -100,14 +180,14 @@ export async function GET(request) {
 
   const user = await userResponse.json();
 
-  const trainingStaffPositions =
-    user.userStaffPositions?.filter(
-      (position) =>
-        position?.staffPosition?.departmentTeam?.department?.id === "TRA"
-    ) || [];
+  const allStaffPositions = user.userStaffPositions || [];
+  const trainingStaffPositions = allStaffPositions.filter(isTrainingStaffPosition);
+  const visibleStaffPositions = trainingStaffPositions.length
+    ? trainingStaffPositions
+    : allStaffPositions;
 
   const trainingStaffPosition =
-    trainingStaffPositions.map(getStaffPositionName).filter(Boolean).join(", ") || null;
+    visibleStaffPositions.map(getStaffPositionName).filter(Boolean).join(", ") || null;
 
   const hasTrainingAccess = trainingStaffPositions.length > 0;
   const displayName = getFullName(user);
@@ -118,11 +198,11 @@ export async function GET(request) {
     name: displayName,
     displayName,
     publicNickname: user.publicNickname || null,
-    divisionId: user.divisionId || null,
-    countryId: user.countryId || null,
+    divisionId: user.divisionId || user.division?.id || null,
+    countryId: user.countryId || user.country?.id || null,
     atcRating: user.rating?.atcRating?.shortName || null,
     pilotRating: user.rating?.pilotRating?.shortName || null,
-    isStaff: Boolean(user.isStaff),
+    isStaff: Boolean(user.isStaff || allStaffPositions.length),
     hasTrainingAccess,
     trainingStaffPosition,
     createdAt: new Date().toISOString(),
