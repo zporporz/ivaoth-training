@@ -24,11 +24,9 @@ const WEBMASTER_VID = "739898";
 const emptyForm = {
   title: "",
   description: "",
-  category: "Approach",
   type: "YouTube",
   url: "",
   thumbnailUrl: "",
-  difficulty: "Beginner",
   order: "",
   active: true,
 };
@@ -80,18 +78,21 @@ function DocsManager() {
   }
 
   async function handleSave() {
+    if (!form.title || !form.url) {
+      alert("กรอก Title และ Resource URL ก่อน");
+      return;
+    }
+
     const thumbnail =
       form.thumbnailUrl ||
       (form.type === "YouTube" ? youtubeThumbnail(form.url) : "");
 
     const payload = {
-      title: form.title,
-      description: form.description,
-      category: form.category,
+      title: form.title.trim(),
+      description: form.description.trim(),
       type: form.type,
-      url: form.url,
+      url: form.url.trim(),
       thumbnailUrl: thumbnail,
-      difficulty: form.difficulty,
       order: Number(form.order || 9999),
       active: form.active,
       updatedAt: serverTimestamp(),
@@ -119,14 +120,17 @@ function DocsManager() {
     setForm({
       title: item.title || "",
       description: item.description || "",
-      category: item.category || "Approach",
       type: item.type || "Website",
       url: item.url || "",
       thumbnailUrl: item.thumbnailUrl || "",
-      difficulty: item.difficulty || "Beginner",
       order: String(item.order || ""),
       active: item.active !== false,
     });
+  }
+
+  function handleCancelEdit() {
+    setEditingId(null);
+    setForm(emptyForm);
   }
 
   if (!isWebmaster) {
@@ -151,41 +155,39 @@ function DocsManager() {
 
         <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
           <Card>
+            <div className="mb-4 flex items-center justify-between">
+              <div className="text-xs font-black uppercase text-[#8b8a84]">
+                {editingId ? "Edit Doc" : "Add Doc"}
+              </div>
+
+              {editingId && (
+                <button onClick={handleCancelEdit} className="rounded-full border border-[#dddbd6] px-3 py-1 text-xs font-black text-[#4b4b48]">
+                  cancel
+                </button>
+              )}
+            </div>
+
             <div className="space-y-4">
-              <input value={form.title} onChange={(e) => updateField("title", e.target.value)} placeholder="Title" className="w-full rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold" />
+              <input value={form.title} onChange={(e) => updateField("title", e.target.value)} placeholder="Title" className="w-full rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold outline-none" />
 
-              <textarea value={form.description} onChange={(e) => updateField("description", e.target.value)} placeholder="Description" rows={3} className="w-full rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold" />
+              <textarea value={form.description} onChange={(e) => updateField("description", e.target.value)} placeholder="Description" rows={3} className="w-full rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold outline-none" />
 
-              <div className="grid grid-cols-2 gap-4">
-                <select value={form.category} onChange={(e) => updateField("category", e.target.value)} className="rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold">
-                  <option>Approach</option>
-                  <option>Radar</option>
-                  <option>Phraseology</option>
-                  <option>Charts</option>
-                  <option>IFR</option>
-                  <option>Exams</option>
-                </select>
+              <select value={form.type} onChange={(e) => updateField("type", e.target.value)} className="w-full rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold outline-none">
+                <option>YouTube</option>
+                <option>Website</option>
+                <option>PDF</option>
+              </select>
 
-                <select value={form.type} onChange={(e) => updateField("type", e.target.value)} className="rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold">
-                  <option>YouTube</option>
-                  <option>Website</option>
-                  <option>PDF</option>
-                </select>
-              </div>
+              <input value={form.url} onChange={(e) => updateField("url", e.target.value)} placeholder="Resource URL" className="w-full rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold outline-none" />
 
-              <input value={form.url} onChange={(e) => updateField("url", e.target.value)} placeholder="Resource URL" className="w-full rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold" />
+              <input value={form.thumbnailUrl} onChange={(e) => updateField("thumbnailUrl", e.target.value)} placeholder="Thumbnail URL / card cover image" className="w-full rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold outline-none" />
 
-              <input value={form.thumbnailUrl} onChange={(e) => updateField("thumbnailUrl", e.target.value)} placeholder="Thumbnail URL (optional for YouTube)" className="w-full rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold" />
+              <input value={form.order} onChange={(e) => updateField("order", e.target.value.replace(/[^0-9]/g, ""))} placeholder="Order e.g. 1, 2, 3" inputMode="numeric" className="w-full rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold outline-none" />
 
-              <div className="grid grid-cols-2 gap-4">
-                <select value={form.difficulty} onChange={(e) => updateField("difficulty", e.target.value)} className="rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold">
-                  <option>Beginner</option>
-                  <option>Intermediate</option>
-                  <option>Advanced</option>
-                </select>
-
-                <input value={form.order} onChange={(e) => updateField("order", e.target.value)} placeholder="Order" className="rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold" />
-              </div>
+              <label className="flex items-center gap-3 rounded-2xl border border-[#ececea] bg-[#fbfbfa] px-4 py-3 font-bold text-[#4b4b48]">
+                <input type="checkbox" checked={form.active} onChange={(e) => updateField("active", e.target.checked)} />
+                Active / show on Training Docs
+              </label>
 
               <button onClick={handleSave} className="w-full rounded-2xl bg-black px-5 py-3 font-black text-white">
                 {editingId ? "Update Doc" : "Publish Doc"}
@@ -198,26 +200,30 @@ function DocsManager() {
               training docs database
             </div>
 
-            {docs.map((item) => (
-              <div key={item.firestoreId} className="flex items-center justify-between border-b border-[#ececea] px-6 py-5">
-                <div>
-                  <div className="font-black">{item.title}</div>
-                  <div className="mt-1 text-sm font-bold italic text-[#8b8a84]">
-                    {item.category} · {item.type}
+            {docs.length === 0 ? (
+              <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">No docs yet.</div>
+            ) : (
+              docs.map((item) => (
+                <div key={item.firestoreId} className="flex items-center justify-between border-b border-[#ececea] px-6 py-5">
+                  <div>
+                    <div className="font-black">{item.title}</div>
+                    <div className="mt-1 text-sm font-bold italic text-[#8b8a84]">
+                      #{item.order ?? "-"} · {item.type} {item.active === false ? "· inactive" : ""}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button onClick={() => handleEdit(item)} className="rounded-full border border-[#dddbd6] px-3 py-1 text-xs font-black">
+                      edit
+                    </button>
+
+                    <button onClick={() => handleDelete(item.firestoreId)} className="rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-black text-red-600">
+                      delete
+                    </button>
                   </div>
                 </div>
-
-                <div className="flex gap-2">
-                  <button onClick={() => handleEdit(item)} className="rounded-full border border-[#dddbd6] px-3 py-1 text-xs font-black">
-                    edit
-                  </button>
-
-                  <button onClick={() => handleDelete(item.firestoreId)} className="rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-black text-red-600">
-                    delete
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </Card>
         </div>
       </section>
