@@ -12,6 +12,7 @@ import UpNext from "../components/UpNext";
 import programs from "../data/programs";
 import { db } from "../lib/firebase";
 import { getClientSession } from "../lib/authSession";
+import { ArrowUpRight } from "lucide-react";
 
 const monthNames = [
   "jan", "feb", "mar", "apr", "may", "jun",
@@ -96,7 +97,10 @@ export default function Home() {
               className="group mt-5 inline-flex items-center gap-3 rounded-full bg-[#ff5a1f] px-6 py-3.5 text-sm font-bold uppercase tracking-[0.12em] text-white shadow-[0_14px_35px_rgba(255,90,31,0.28)] transition duration-300 hover:-translate-y-1 hover:bg-[#f04f18] hover:shadow-[0_18px_45px_rgba(255,90,31,0.42)]"
             >
               REQUEST TRAINING
-              <span className="transition group-hover:translate-x-1">→</span>
+              <ArrowUpRight
+  size={18}
+  className="transition duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+/>
             </a>
           )}
         </div>
