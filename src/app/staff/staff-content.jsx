@@ -82,6 +82,7 @@ export default function OriginalStaffPage() {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(emptyForm);
   const [loginSession, setLoginSession] = useState(null);
+  const [traineeLookupStatus, setTraineeLookupStatus] = useState("idle");
 
   function canManageSession(session) {
     if (!loginSession?.vid) return false;
@@ -110,6 +111,52 @@ export default function OriginalStaffPage() {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const traineeVid = form.traineeVid.trim();
+
+    if (traineeVid.length < 5) {
+      setTraineeLookupStatus("idle");
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(async () => {
+      try {
+        setTraineeLookupStatus("loading");
+
+        const response = await fetch(`/api/ivao/user/${traineeVid}`, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          setTraineeLookupStatus("not-found");
+          return;
+        }
+
+        const data = await response.json();
+
+        setForm((prev) => {
+          if (prev.traineeVid !== traineeVid) return prev;
+          return {
+            ...prev,
+            traineeName: data.name || prev.traineeName,
+          };
+        });
+
+        setTraineeLookupStatus("found");
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          setTraineeLookupStatus("error");
+        }
+      }
+    }, 600);
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [form.traineeVid]);
 
   async function handlePublish() {
     if (!form.date || !form.time || !form.position || !form.traineeName || !form.traineeVid || !form.topic) {
@@ -162,6 +209,7 @@ export default function OriginalStaffPage() {
     }
 
     setForm(emptyForm);
+    setTraineeLookupStatus("idle");
   }
 
   async function handleClaimSession(session) {
@@ -199,6 +247,7 @@ export default function OriginalStaffPage() {
     }
 
     setEditingId(session.firestoreId);
+    setTraineeLookupStatus("idle");
 
     setForm({
       date: session.date || "",
@@ -218,6 +267,7 @@ export default function OriginalStaffPage() {
   function handleCancelEdit() {
     setEditingId(null);
     setForm(emptyForm);
+    setTraineeLookupStatus("idle");
   }
 
   const mySessions = loginSession?.vid
@@ -398,13 +448,32 @@ export default function OriginalStaffPage() {
                 className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
               />
 
-              <input
-                value={form.traineeVid}
-                onChange={(e) => updateForm("traineeVid", e.target.value.replace(/\D/g, ""))}
-                placeholder="Trainee VID *"
-                inputMode="numeric"
-                className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
-              />
+              <div>
+                <input
+                  value={form.traineeVid}
+                  onChange={(e) => updateForm("traineeVid", e.target.value.replace(/\D/g, ""))}
+                  placeholder="Trainee VID *"
+                  inputMode="numeric"
+                  className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
+                />
+
+                {traineeLookupStatus !== "idle" && (
+                  <div
+                    className={`mt-2 text-xs font-black ${
+                      traineeLookupStatus === "found"
+                        ? "text-[#16a34a]"
+                        : traineeLookupStatus === "loading"
+                        ? "text-[#8b8a84]"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {traineeLookupStatus === "loading" && "Looking up IVAO profile..."}
+                    {traineeLookupStatus === "found" && "Trainee name filled from IVAO profile."}
+                    {traineeLookupStatus === "not-found" && "Could not find this VID. You can still type the name manually."}
+                    {traineeLookupStatus === "error" && "Could not lookup VID right now. You can still type the name manually."}
+                  </div>
+                )}
+              </div>
 
               <textarea
                 value={form.topic}
