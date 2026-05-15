@@ -14,6 +14,38 @@ function encodeSession(data) {
   return Buffer.from(JSON.stringify(data)).toString("base64url");
 }
 
+function cleanName(value) {
+  if (!value) return "";
+  return String(value).replace(/\s*\(?\d{4,}\)?\s*$/g, "").trim();
+}
+
+function getFullName(user) {
+  const firstName = user.firstName || user.first_name || user.firstname;
+  const lastName = user.lastName || user.last_name || user.lastname;
+  const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
+
+  return (
+    cleanName(fullName) ||
+    cleanName(user.name) ||
+    cleanName(user.fullName) ||
+    cleanName(user.publicNickname) ||
+    `VID ${user.id}`
+  );
+}
+
+function getStaffPositionName(position) {
+  const staffPosition = position?.staffPosition || position;
+
+  return (
+    staffPosition?.shortName ||
+    staffPosition?.name ||
+    staffPosition?.id ||
+    position?.shortName ||
+    position?.name ||
+    null
+  );
+}
+
 export async function GET(request) {
   const { searchParams } = request.nextUrl;
   const code = searchParams.get("code");
@@ -68,23 +100,31 @@ export async function GET(request) {
 
   const user = await userResponse.json();
 
-  const hasTrainingAccess = Boolean(
-    user.userStaffPositions?.some(
+  const trainingStaffPositions =
+    user.userStaffPositions?.filter(
       (position) =>
         position?.staffPosition?.departmentTeam?.department?.id === "TRA"
-    )
-  );
+    ) || [];
+
+  const trainingStaffPosition =
+    trainingStaffPositions.map(getStaffPositionName).filter(Boolean).join(", ") || null;
+
+  const hasTrainingAccess = trainingStaffPositions.length > 0;
+  const displayName = getFullName(user);
 
   const session = {
     id: user.id,
     vid: String(user.id),
-    name: user.publicNickname || `VID ${user.id}`,
+    name: displayName,
+    displayName,
+    publicNickname: user.publicNickname || null,
     divisionId: user.divisionId || null,
     countryId: user.countryId || null,
     atcRating: user.rating?.atcRating?.shortName || null,
     pilotRating: user.rating?.pilotRating?.shortName || null,
     isStaff: Boolean(user.isStaff),
     hasTrainingAccess,
+    trainingStaffPosition,
     createdAt: new Date().toISOString(),
   };
 
