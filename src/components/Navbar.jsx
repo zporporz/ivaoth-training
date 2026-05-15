@@ -5,8 +5,11 @@ import { useEffect, useState } from "react";
 import { getClientSession } from "../lib/authSession";
 import UserBadge from "./UserBadge";
 
+const WEBMASTER_VID = "739898";
+
 export default function Navbar() {
   const [session, setSession] = useState(null);
+  const isWebmaster = String(session?.vid || "") === WEBMASTER_VID;
 
   useEffect(() => {
     setSession(getClientSession());
@@ -39,9 +42,11 @@ export default function Navbar() {
 
           {session.hasTrainingAccess && (
             <>
-              <a href="/staff/training-staff" className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]">
-                Manage List
-              </a>
+              {isWebmaster && (
+                <a href="/staff/training-staff" className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]">
+                  Manage List
+                </a>
+              )}
 
               <a href="/staff" className="rounded-full bg-[#0a2342] px-4 py-2 text-base font-extrabold text-white transition hover:bg-[#163b6d]">
                 Staff Console
