@@ -33,6 +33,18 @@ function StaffAvatar({ staff }) {
   );
 }
 
+function sortTrainingStaff(a, b) {
+  const orderA = Number.isFinite(Number(a.order)) ? Number(a.order) : 9999;
+  const orderB = Number.isFinite(Number(b.order)) ? Number(b.order) : 9999;
+
+  if (orderA !== orderB) return orderA - orderB;
+
+  const positionCompare = String(a.position || "").localeCompare(String(b.position || ""));
+  if (positionCompare !== 0) return positionCompare;
+
+  return String(a.name || "").localeCompare(String(b.name || ""));
+}
+
 export default function TrainingListPage() {
   const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,7 +70,8 @@ export default function TrainingListPage() {
         return [staff.name, staff.vid, staff.position, staff.division]
           .filter(Boolean)
           .some((value) => String(value).toLowerCase().includes(keyword));
-      });
+      })
+      .sort(sortTrainingStaff);
   }, [staffList, search]);
 
   return (
