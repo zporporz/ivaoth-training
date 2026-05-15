@@ -38,7 +38,7 @@ export default function TrainingDocsPage() {
     return <main className="relative z-10 min-h-screen px-6 py-6"><Navbar /></main>;
   }
 
-  const categories = ["All", "Approach", "Radar", "Phraseology", "Charts", "IFR", "Exams"];
+  const categories = ["All", "Radar", "Phraseology", "Charts", "IFR", "Exams"];
 
   return (
     <main className="relative z-10 min-h-screen px-6 py-6">
