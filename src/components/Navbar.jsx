@@ -36,6 +36,12 @@ export default function Navbar() {
             My Training
           </a>
 
+          {isWebmaster && (
+            <a href="/training-docs" className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]">
+              Training Docs
+            </a>
+          )}
+
           <a href="/training-list" className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]">
             Training List
           </a>
@@ -43,9 +49,15 @@ export default function Navbar() {
           {session.hasTrainingAccess && (
             <>
               {isWebmaster && (
-                <a href="/staff/training-staff" className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]">
-                  Manage List
-                </a>
+                <>
+                  <a href="/staff/training-docs" className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]">
+                    Manage Docs
+                  </a>
+
+                  <a href="/staff/training-staff" className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]">
+                    Manage List
+                  </a>
+                </>
               )}
 
               <a href="/staff" className="rounded-full bg-[#0a2342] px-4 py-2 text-base font-extrabold text-white transition hover:bg-[#163b6d]">
