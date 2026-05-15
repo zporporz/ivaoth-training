@@ -95,7 +95,7 @@ const programs = [
     desc: "Highest pilot rating training",
     color: "#be123c",
     tint: "#ffe4e6",
-    tag: "Senior",
+    tag: "Rating",
     group: "Pilot",
   },
 ];
