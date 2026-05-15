@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 
 import Navbar from "../components/Navbar";
@@ -42,6 +42,8 @@ function buildUpNextFromSessions(sessions) {
 
 export default function Home() {
   const [dbSessions, setDbSessions] = useState([]);
+  const [activeGroup, setActiveGroup] = useState("ATC");
+
   const liveUpNext = buildUpNextFromSessions(dbSessions);
 
   useEffect(() => {
@@ -58,6 +60,10 @@ export default function Home() {
 
     return () => unsubscribe();
   }, []);
+
+  const filteredPrograms = useMemo(() => {
+    return programs.filter((p) => p.group === activeGroup);
+  }, [activeGroup]);
 
   return (
     <main className="relative z-10 min-h-screen px-6 py-6">
@@ -78,18 +84,42 @@ export default function Home() {
         </div>
 
         <div className="mb-7 flex flex-col items-center">
+          <div className="mb-5 flex items-center gap-3 rounded-full border border-[#ececea] bg-white p-1 shadow-sm">
+            <button
+              onClick={() => setActiveGroup("ATC")}
+              className={`rounded-full px-5 py-2 text-sm font-black transition ${
+                activeGroup === "ATC"
+                  ? "bg-black text-white"
+                  : "text-[#8b8a84] hover:bg-[#f3f3f1]"
+              }`}
+            >
+              ATC
+            </button>
+
+            <button
+              onClick={() => setActiveGroup("Pilot")}
+              className={`rounded-full px-5 py-2 text-sm font-black transition ${
+                activeGroup === "Pilot"
+                  ? "bg-[#0a2342] text-white"
+                  : "text-[#8b8a84] hover:bg-[#f3f3f1]"
+              }`}
+            >
+              PILOT
+            </button>
+          </div>
+
           <div className="mb-4 flex items-baseline justify-center gap-4">
             <h2 className="text-2xl font-black">
               <span className="font-normal italic">Training</span> programs
             </h2>
 
             <span className="text-sm font-semibold italic text-[#8b8a84]">
-              training, check-up, and examination overview
+              {activeGroup} training, check-up, and examination overview
             </span>
           </div>
 
-          <div className="grid w-full grid-cols-6 gap-4">
-            {programs.map((p) => (
+          <div className="grid w-full grid-cols-5 gap-4">
+            {filteredPrograms.map((p) => (
               <ProgramCard key={p.code} p={p} sessions={dbSessions} />
             ))}
           </div>
