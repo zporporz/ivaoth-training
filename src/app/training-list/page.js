@@ -118,13 +118,24 @@ export default function TrainingListPage() {
           ) : (
             <div className="grid gap-4 p-6 md:grid-cols-2 xl:grid-cols-3">
               {activeStaff.map((staff) => (
-                <div key={staff.firestoreId} className="rounded-3xl border border-[#ececea] bg-white/70 p-5 shadow-sm">
+                <a
+                  key={staff.firestoreId}
+                  href={`https://ivao.aero/Member.aspx?Id=${staff.vid}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group rounded-3xl border border-[#ececea] bg-white/70 p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-[#0a2342] hover:shadow-xl"
+                >
                   <div className="flex items-center gap-4">
                     <StaffAvatar staff={staff} />
 
                     <div className="min-w-0">
-                      <div className="truncate text-xl font-black">{staff.name}</div>
-                      <div className="mt-1 text-sm font-bold italic text-[#8b8a84]">VID {staff.vid}</div>
+                      <div className="truncate text-xl font-black transition group-hover:text-[#0a2342]">
+                        {staff.name}
+                      </div>
+
+                      <div className="mt-1 text-sm font-bold italic text-[#8b8a84]">
+                        VID {staff.vid}
+                      </div>
                     </div>
                   </div>
 
@@ -132,13 +143,18 @@ export default function TrainingListPage() {
                     <span className="rounded-full bg-[#0a2342] px-3 py-1 text-xs font-black text-white">
                       {staff.position || "Training Staff"}
                     </span>
+
                     <span className="rounded-full border border-[#dddbd6] bg-[#fbfbfa] px-3 py-1 text-xs font-black text-[#4b4b48]">
                       {staff.division || "TH"}
                     </span>
                   </div>
 
-                  {staff.bio && <div className="mt-4 text-sm font-semibold text-[#4b4b48]">{staff.bio}</div>}
-                </div>
+                  {staff.bio && (
+                    <div className="mt-4 text-sm font-semibold text-[#4b4b48]">
+                      {staff.bio}
+                    </div>
+                  )}
+                </a>
               ))}
             </div>
           )}
