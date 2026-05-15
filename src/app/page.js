@@ -118,7 +118,13 @@ export default function Home() {
             </span>
           </div>
 
-          <div className="grid w-full grid-cols-5 gap-4">
+          <div
+  className={`grid w-full gap-4 ${
+    activeGroup === "ATC"
+      ? "grid-cols-6"
+      : "grid-cols-5"
+  }`}
+>
             {filteredPrograms.map((p) => (
               <ProgramCard key={p.code} p={p} sessions={dbSessions} />
             ))}
