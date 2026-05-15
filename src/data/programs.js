@@ -41,7 +41,7 @@ const programs = [
     desc: "Advanced ATC competency",
     color: "#0891b2",
     tint: "#cffafe",
-    tag: "Senior",
+    tag: "Rating",
     group: "ATC",
   },
   {
