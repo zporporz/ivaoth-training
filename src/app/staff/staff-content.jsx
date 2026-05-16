@@ -84,13 +84,13 @@ export default function OriginalStaffPage() {
   const isCoreOwner = isCoreWebmasterVid(loginSession?.vid);
 
   function canManageSession(session) {
-    if (!loginSession?.vid) return false;
-    return String(session.trainerVid || "") === String(loginSession.vid);
-  }
+  if (!loginSession?.vid) return false;
 
-  function updateForm(field, value) {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  }
+  return (
+    String(session.trainerVid || "") === String(loginSession.vid) ||
+    isCoreWebmasterVid(loginSession?.vid)
+  );
+}
 
   useEffect(() => {
     setLoginSession(getClientSession());
