@@ -282,12 +282,21 @@ export default function OriginalStaffPage() {
                 </div>
               </div>
 
-              <a
-                href="/staff/webmasters"
-                className="inline-flex items-center justify-center rounded-full bg-[#0a2342] px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#163b6d] hover:shadow-lg"
-              >
-                Manage Webmasters
-              </a>
+              <div className="flex flex-wrap items-center gap-3">
+  <a
+    href="/staff/webmasters"
+    className="inline-flex items-center justify-center rounded-full bg-[#0a2342] px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#163b6d] hover:shadow-lg"
+  >
+    Manage Webmasters
+  </a>
+
+  <a
+    href="/staff/manual-training"
+    className="inline-flex items-center justify-center rounded-full border border-[#0a2342] bg-white px-5 py-3 text-sm font-black text-[#0a2342] transition hover:-translate-y-0.5 hover:bg-[#f3f6fb] hover:shadow-lg"
+  >
+    Manual Add Training
+  </a>
+</div>
             </div>
           </Card>
         )}
