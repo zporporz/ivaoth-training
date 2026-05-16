@@ -18,6 +18,7 @@ import Card from "../../components/ui/Card";
 import { getClientSession } from "../../lib/authSession";
 import { db } from "../../lib/firebase";
 import { isCoreWebmasterVid } from "../../lib/useWebmasterAccess";
+import programs from "../../data/programs";
 
 const emptyForm = {
   date: "",
@@ -90,6 +91,9 @@ export default function OriginalStaffPage() {
     String(session.trainerVid || "") === String(loginSession.vid) ||
     isCoreWebmasterVid(loginSession?.vid)
   );
+}
+function updateForm(field, value) {
+  setForm((prev) => ({ ...prev, [field]: value }));
 }
 
   useEffect(() => {
@@ -369,9 +373,17 @@ export default function OriginalStaffPage() {
                 <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-sm font-black text-[#8b8a84]">Z</span>
               </div>
 
-              <select value={form.program} onChange={(e) => updateForm("program", e.target.value)} className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none">
-                <option>ASx</option><option>FSx</option><option>ADC</option><option>APC</option><option>ACC</option><option>SEC</option><option>GCA</option>
-              </select>
+              <select
+  value={form.program}
+  onChange={(e) => updateForm("program", e.target.value)}
+  className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
+>
+  {programs.map((program) => (
+    <option key={program.code} value={program.code}>
+      {program.code} — {program.name}
+    </option>
+  ))}
+</select>
 
               <select value={form.type} onChange={(e) => updateForm("type", e.target.value)} className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none">
                 <option>Theory Training</option><option>Unofficial Practical</option><option>Official Practical</option><option>Theory Exam</option><option>Practical Exam</option>
