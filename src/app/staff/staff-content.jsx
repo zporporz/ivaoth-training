@@ -17,6 +17,7 @@ import Navbar from "../../components/Navbar";
 import Card from "../../components/ui/Card";
 import { getClientSession } from "../../lib/authSession";
 import { db } from "../../lib/firebase";
+import { isCoreWebmasterVid } from "../../lib/useWebmasterAccess";
 
 const emptyForm = {
   date: "",
@@ -79,6 +80,8 @@ export default function OriginalStaffPage() {
   const [form, setForm] = useState(emptyForm);
   const [loginSession, setLoginSession] = useState(null);
   const [traineeLookupStatus, setTraineeLookupStatus] = useState("idle");
+
+  const isCoreOwner = isCoreWebmasterVid(loginSession?.vid);
 
   function canManageSession(session) {
     if (!loginSession?.vid) return false;
@@ -265,6 +268,29 @@ export default function OriginalStaffPage() {
             console — manage schedule<span className="text-[#ff5a1f]">.</span>
           </h1>
         </div>
+
+        {isCoreOwner && (
+          <Card className="mb-6 border-[#0a2342]/20 bg-[#0a2342]/[0.03]">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">core webmaster tools</div>
+                <div className="mt-1 text-2xl font-black">
+                  <span className="font-normal italic text-[#8b8a84]">system/</span>access control
+                </div>
+                <div className="mt-2 text-sm font-semibold text-[#4b4b48]">
+                  Manage additional webmasters. Core VID 739898 is protected and cannot be removed.
+                </div>
+              </div>
+
+              <a
+                href="/staff/webmasters"
+                className="inline-flex items-center justify-center rounded-full bg-[#0a2342] px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#163b6d] hover:shadow-lg"
+              >
+                Manage Webmasters
+              </a>
+            </div>
+          </Card>
+        )}
 
         <Card className="mb-6 overflow-hidden p-0">
           <div className="flex items-center justify-between border-b border-[#ececea] px-6 py-5">
