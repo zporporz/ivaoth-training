@@ -9,6 +9,7 @@ import Card from "../../../components/ui/Card";
 import { getClientSession } from "../../../lib/authSession";
 import { db } from "../../../lib/firebase";
 import { CORE_WEBMASTER_VID, isCoreWebmasterVid } from "../../../lib/useWebmasterAccess";
+import programs from "../../../data/programs";
 
 const emptyForm = {
   date: "",
@@ -221,7 +222,11 @@ function ManualTrainingManager() {
             </div>
 
             <select value={form.program} onChange={(e) => updateForm("program", e.target.value)} className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none">
-              <option>ASx</option><option>FSx</option><option>ADC</option><option>APC</option><option>ACC</option><option>SEC</option><option>GCA</option>
+              {programs.map((program) => (
+                <option key={program.code} value={program.code}>
+                  {program.code} — {program.name}
+                </option>
+              ))}
             </select>
 
             <select value={form.type} onChange={(e) => updateForm("type", e.target.value)} className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none">
