@@ -83,6 +83,15 @@ export default function Home() {
 
   const liveUpNext = buildSessionList(dbSessions, "upcoming");
   const historySessions = buildSessionList(dbSessions, "history");
+  const atcCount = dbSessions.filter((s) => {
+  const program = programs.find((p) => p.code === s.program);
+  return program?.group === "ATC";
+}).length;
+
+const pilotCount = dbSessions.filter((s) => {
+  const program = programs.find((p) => p.code === s.program);
+  return program?.group === "Pilot";
+}).length;
 
   useEffect(() => {
     setSession(getClientSession());
@@ -189,13 +198,17 @@ export default function Home() {
         </div>
 
         <div className="mb-5 flex items-center gap-8 border-b border-[#dddbd6]">
-          <button className="border-b-4 border-[#ff5a1f] pb-3 text-base font-black">
-            all sessions{" "}
-            <span className="ml-2 rounded-full bg-black px-2 py-1 text-xs text-white">
-              {dbSessions.length}
-            </span>
-          </button>
-        </div>
+  <button className="border-b-4 border-[#ff5a1f] pb-3 text-base font-black">
+    all sessions{" "}
+    <span className="ml-2 rounded-full bg-black px-2 py-1 text-xs text-white">
+      {dbSessions.length}
+    </span>
+
+    <span className="ml-3 text-xs font-bold text-[#8b8a84]">
+      ATC {atcCount} · Pilot {pilotCount}
+    </span>
+  </button>
+</div>
 
         <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
           <TrainingCalendar sessions={dbSessions} programs={programs} />
