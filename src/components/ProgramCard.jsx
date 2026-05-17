@@ -1,9 +1,31 @@
+function sessionToDate(session) {
+  const rawDate = String(session?.date || "").trim();
+  const rawTime = String(session?.time || "").replace(/\D/g, "");
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(rawDate) || rawTime.length < 4) {
+    return null;
+  }
+
+  const hour = rawTime.slice(0, 2);
+  const minute = rawTime.slice(2, 4);
+  const date = new Date(`${rawDate}T${hour}:${minute}:00Z`);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 export default function ProgramCard({ p, sessions = [] }) {
+  const now = new Date();
   const related = sessions.filter((s) => s.program === p.code);
 
-  const upcoming = related.length;
+  const upcoming = related.filter((session) => {
+    const sessionDate = sessionToDate(session);
+    return sessionDate && sessionDate >= now;
+  }).length;
 
-  const official = related.filter((s) => s.status === "Official").length;
+  const completed = related.filter((session) => {
+    const sessionDate = sessionToDate(session);
+    return sessionDate && sessionDate < now;
+  }).length;
 
   const exams = related.filter((s) => s.status === "Exam").length;
 
@@ -48,17 +70,17 @@ export default function ProgramCard({ p, sessions = [] }) {
         </div>
 
         <div>
-          <div className="text-xl font-black text-[#b8b6ae]">
-            {official}
+          <div className="text-xl font-black text-[#4b4b48]">
+            {completed}
           </div>
 
           <div className="text-[9px] italic text-[#8b8a84]">
-            official
+            completed
           </div>
         </div>
 
         <div>
-          <div className="text-xl font-black">
+          <div className="text-xl font-black text-red-600">
             {exams}
           </div>
 
