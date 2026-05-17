@@ -179,7 +179,7 @@ function TrainingStaffManager() {
           </h1>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+        <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
           <Card>
             <div className="flex items-center justify-between">
               <div className="text-xs font-black uppercase text-[#8b8a84]">
@@ -266,7 +266,7 @@ function TrainingStaffManager() {
               </div>
             </div>
 
-            <div>
+            <div className="max-h-[calc(100vh-16rem)] overflow-y-auto">
               {staffList.length === 0 ? (
                 <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">No staff added yet.</div>
               ) : (
