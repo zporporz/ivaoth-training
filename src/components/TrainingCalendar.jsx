@@ -11,6 +11,14 @@ const monthNames = [
   "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
 ];
 
+function getBangkokNowDate() {
+  return new Date(
+    new Date().toLocaleString("en-US", {
+      timeZone: "Asia/Bangkok",
+    })
+  );
+}
+
 function toDateKey(date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -99,12 +107,12 @@ function SessionChip({ session, programs, onClick }) {
 }
 
 export default function TrainingCalendar({ sessions, programs }) {
-  const [cursor, setCursor] = useState(new Date());
+  const [cursor, setCursor] = useState(() => getBangkokNowDate());
   const [selectedSession, setSelectedSession] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   const grid = buildMonthGrid(cursor);
-  const todayKey = toDateKey(new Date());
+  const todayKey = toDateKey(getBangkokNowDate());
 
   function handleSessionClick(session) {
     const loginSession = getClientSession();
@@ -126,7 +134,7 @@ export default function TrainingCalendar({ sessions, programs }) {
   }
 
   function goToday() {
-    setCursor(new Date());
+    setCursor(getBangkokNowDate());
   }
 
   const monthLabel = `${monthNames[cursor.getMonth()]} ${cursor.getFullYear()}`;
