@@ -19,27 +19,48 @@ const monthNames = [
   "jul", "aug", "sep", "oct", "nov", "dec",
 ];
 
-function buildUpNextFromSessions(sessions) {
-  return sessions.map((session) => {
-    const parts = session.date?.split("-") || [];
-    const monthIndex = Number(parts[1]) - 1;
-    const day = parts[2]?.replace(/^0/, "") || "-";
-    const month = monthNames[monthIndex] || "";
-    const program = programs.find((p) => p.code === session.program);
+function sessionToDate(session) {
+  const rawDate = String(session?.date || "").trim();
+  const rawTime = String(session?.time || "").replace(/\D/g, "");
 
-    return {
-      day,
-      month,
-      time: session.time || "-",
-      type: session.program,
-      pos: session.position,
-      title: `${session.type} · ${session.topic}`,
-      name: session.traineeName || session.trainee || "Unknown trainee",
-      vid: session.traineeVid || "",
-      color: program?.color || "#0a0a0a",
-      mine: false,
-    };
-  });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(rawDate) || rawTime.length < 4) {
+    return null;
+  }
+
+  const hour = rawTime.slice(0, 2);
+  const minute = rawTime.slice(2, 4);
+  const date = new Date(`${rawDate}T${hour}:${minute}:00Z`);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function buildUpNextFromSessions(sessions) {
+  const now = new Date();
+
+  return sessions
+    .map((session) => ({ ...session, sessionDate: sessionToDate(session) }))
+    .filter((session) => session.sessionDate && session.sessionDate >= now)
+    .sort((a, b) => a.sessionDate.getTime() - b.sessionDate.getTime())
+    .map((session) => {
+      const parts = session.date?.split("-") || [];
+      const monthIndex = Number(parts[1]) - 1;
+      const day = parts[2]?.replace(/^0/, "") || "-";
+      const month = monthNames[monthIndex] || "";
+      const program = programs.find((p) => p.code === session.program);
+
+      return {
+        day,
+        month,
+        time: session.time || "-",
+        type: session.program,
+        pos: session.position,
+        title: `${session.type} · ${session.topic}`,
+        name: session.traineeName || session.trainee || "Unknown trainee",
+        vid: session.traineeVid || "",
+        color: program?.color || "#0a0a0a",
+        mine: false,
+      };
+    });
 }
 
 export default function Home() {
