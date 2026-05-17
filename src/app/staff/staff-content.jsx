@@ -29,6 +29,7 @@ function sessionToDate(session) {
   const date = new Date(`${rawDate}T${rawTime.slice(0, 2)}:${rawTime.slice(2, 4)}:00Z`);
   return Number.isNaN(date.getTime()) ? null : date;
 }
+function monthLabel(item) { return item.sessionDate ? monthFormatter.format(item.sessionDate).toUpperCase() : "NO DATE"; }
 function splitSessionsByTime(items) {
   const now = new Date();
   const withDates = items.map((s) => ({ ...s, sessionDate: sessionToDate(s) })).filter((s) => s.sessionDate);
@@ -37,13 +38,18 @@ function splitSessionsByTime(items) {
     completed: withDates.filter((s) => s.sessionDate < now).sort((a, b) => b.sessionDate - a.sessionDate),
   };
 }
+function getMonthOptions(items) { return [...new Set(items.map(monthLabel))]; }
+function filterByMonth(items, month) { return month === "ALL" ? items : items.filter((item) => monthLabel(item) === month); }
 function groupByMonth(items) {
   return items.reduce((acc, item) => {
-    const label = item.sessionDate ? monthFormatter.format(item.sessionDate).toUpperCase() : "NO DATE";
+    const label = monthLabel(item);
     const group = acc.find((g) => g.label === label);
     if (group) group.items.push(item); else acc.push({ label, items: [item] });
     return acc;
   }, []);
+}
+function MonthSelect({ value, onChange, options }) {
+  return <select value={value} onChange={(e) => onChange(e.target.value)} className="rounded-full border border-[#ececea] bg-white px-4 py-2 text-xs font-black text-[#4b4b48] outline-none"><option value="ALL">ALL MONTHS</option>{options.map((month) => <option key={month} value={month}>{month}</option>)}</select>;
 }
 
 function TeachingRow({ s, completed, onEdit, onDelete }) {
@@ -51,10 +57,13 @@ function TeachingRow({ s, completed, onEdit, onDelete }) {
 }
 
 function TeachingSchedule({ loading, sessions, tab, setTab, onEdit, onDelete }) {
+  const [month, setMonth] = useState("ALL");
   const { upcoming, completed } = splitSessionsByTime(sessions);
-  const active = tab === "completed" ? completed : upcoming;
+  const source = tab === "completed" ? completed : upcoming;
+  const options = getMonthOptions(source);
+  const active = filterByMonth(source, month);
   const groups = groupByMonth(active);
-  return <Card className="mb-6 overflow-hidden p-0"><div className="flex flex-col gap-4 border-b border-[#ececea] px-6 py-5 md:flex-row md:items-center md:justify-between"><div><div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">personal trainer view</div><div className="mt-1 text-2xl font-black"><span className="font-normal italic text-[#8b8a84]">my/</span>teaching schedule</div></div><div className="flex flex-wrap items-center gap-3"><div className="grid grid-cols-2 rounded-full border border-[#ececea] bg-[#fbfbfa] p-1"><button onClick={() => setTab("upcoming")} className={`rounded-full px-4 py-2 text-xs font-black transition ${tab === "upcoming" ? "bg-black text-white" : "text-[#8b8a84] hover:bg-white"}`}>Upcoming ({upcoming.length})</button><button onClick={() => setTab("completed")} className={`rounded-full px-4 py-2 text-xs font-black transition ${tab === "completed" ? "bg-[#0a2342] text-white" : "text-[#8b8a84] hover:bg-white"}`}>Completed ({completed.length})</button></div><div className="rounded-full bg-black px-4 py-2 text-sm font-black text-white">{sessions.length} sessions</div></div></div>{loading ? <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">Loading your sessions...</div> : sessions.length === 0 ? <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">You do not have any assigned teaching sessions yet.</div> : active.length === 0 ? <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">{tab === "completed" ? "No completed teaching sessions yet." : "No upcoming teaching sessions."}</div> : groups.map((group) => <div key={group.label}><div className="border-b border-[#ececea] bg-[#fbfbfa] px-6 py-3 text-xs font-black uppercase tracking-wide text-[#8b8a84]">{group.label}</div>{group.items.map((s) => <TeachingRow key={`mine-${s.firestoreId}`} s={s} completed={tab === "completed"} onEdit={onEdit} onDelete={onDelete} />)}</div>)}</Card>;
+  return <Card className="mb-6 overflow-hidden p-0"><div className="flex flex-col gap-4 border-b border-[#ececea] px-6 py-5 md:flex-row md:items-center md:justify-between"><div><div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">personal trainer view</div><div className="mt-1 text-2xl font-black"><span className="font-normal italic text-[#8b8a84]">my/</span>teaching schedule</div></div><div className="flex flex-wrap items-center gap-3"><MonthSelect value={month} onChange={setMonth} options={options} /><div className="grid grid-cols-2 rounded-full border border-[#ececea] bg-[#fbfbfa] p-1"><button onClick={() => setTab("upcoming")} className={`rounded-full px-4 py-2 text-xs font-black transition ${tab === "upcoming" ? "bg-black text-white" : "text-[#8b8a84] hover:bg-white"}`}>Upcoming ({upcoming.length})</button><button onClick={() => setTab("completed")} className={`rounded-full px-4 py-2 text-xs font-black transition ${tab === "completed" ? "bg-[#0a2342] text-white" : "text-[#8b8a84] hover:bg-white"}`}>Completed ({completed.length})</button></div><div className="rounded-full bg-black px-4 py-2 text-sm font-black text-white">{sessions.length} sessions</div></div></div>{loading ? <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">Loading your sessions...</div> : sessions.length === 0 ? <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">You do not have any assigned teaching sessions yet.</div> : active.length === 0 ? <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">No sessions in this filter.</div> : groups.map((group) => <div key={group.label}><div className="border-b border-[#ececea] bg-[#fbfbfa] px-6 py-3 text-xs font-black uppercase tracking-wide text-[#8b8a84]">{group.label}</div>{group.items.map((s) => <TeachingRow key={`mine-${s.firestoreId}`} s={s} completed={tab === "completed"} onEdit={onEdit} onDelete={onDelete} />)}</div>)}</Card>;
 }
 
 function ScheduleEntryRow({ s, completed, canManage, isLegacy, onEdit, onDelete, onClaim }) {
@@ -62,10 +71,13 @@ function ScheduleEntryRow({ s, completed, canManage, isLegacy, onEdit, onDelete,
 }
 
 function ScheduleEntriesPanel({ loading, sessions, tab, setTab, canManageSession, onEdit, onDelete, onClaim }) {
+  const [month, setMonth] = useState("ALL");
   const { upcoming, completed } = splitSessionsByTime(sessions);
-  const active = tab === "completed" ? completed : upcoming;
+  const source = tab === "completed" ? completed : upcoming;
+  const options = getMonthOptions(source);
+  const active = filterByMonth(source, month);
   const groups = groupByMonth(active);
-  return <Card className="overflow-hidden p-0"><div className="flex flex-col gap-4 border-b border-[#ececea] px-6 py-5 md:flex-row md:items-center md:justify-between"><div className="text-2xl font-black"><span className="font-normal italic text-[#8b8a84]">training/</span>schedule entries</div><div className="grid grid-cols-2 rounded-full border border-[#ececea] bg-[#fbfbfa] p-1"><button onClick={() => setTab("upcoming")} className={`rounded-full px-4 py-2 text-xs font-black transition ${tab === "upcoming" ? "bg-black text-white" : "text-[#8b8a84] hover:bg-white"}`}>Upcoming ({upcoming.length})</button><button onClick={() => setTab("completed")} className={`rounded-full px-4 py-2 text-xs font-black transition ${tab === "completed" ? "bg-[#0a2342] text-white" : "text-[#8b8a84] hover:bg-white"}`}>Completed ({completed.length})</button></div></div><div className="max-h-[calc(100vh-16rem)] overflow-y-auto">{loading ? <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">Loading sessions...</div> : sessions.length === 0 ? <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">No sessions yet.</div> : active.length === 0 ? <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">{tab === "completed" ? "No completed sessions yet." : "No upcoming sessions."}</div> : groups.map((group) => <div key={group.label}><div className="sticky top-0 z-10 border-b border-[#ececea] bg-[#fbfbfa] px-6 py-3 text-xs font-black uppercase tracking-wide text-[#8b8a84]">{group.label}</div>{group.items.map((s) => <ScheduleEntryRow key={s.firestoreId} s={s} completed={tab === "completed"} canManage={canManageSession(s)} isLegacy={!s.trainerVid} onEdit={onEdit} onDelete={onDelete} onClaim={onClaim} />)}</div>)}</div></Card>;
+  return <Card className="overflow-hidden p-0"><div className="flex flex-col gap-4 border-b border-[#ececea] px-6 py-5 md:flex-row md:items-center md:justify-between"><div className="text-2xl font-black"><span className="font-normal italic text-[#8b8a84]">training/</span>schedule entries</div><div className="flex flex-wrap items-center gap-3"><MonthSelect value={month} onChange={setMonth} options={options} /><div className="grid grid-cols-2 rounded-full border border-[#ececea] bg-[#fbfbfa] p-1"><button onClick={() => setTab("upcoming")} className={`rounded-full px-4 py-2 text-xs font-black transition ${tab === "upcoming" ? "bg-black text-white" : "text-[#8b8a84] hover:bg-white"}`}>Upcoming ({upcoming.length})</button><button onClick={() => setTab("completed")} className={`rounded-full px-4 py-2 text-xs font-black transition ${tab === "completed" ? "bg-[#0a2342] text-white" : "text-[#8b8a84] hover:bg-white"}`}>Completed ({completed.length})</button></div></div></div><div className="max-h-[calc(100vh-16rem)] overflow-y-auto">{loading ? <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">Loading sessions...</div> : sessions.length === 0 ? <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">No sessions yet.</div> : active.length === 0 ? <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">No sessions in this filter.</div> : groups.map((group) => <div key={group.label}><div className="sticky top-0 z-10 border-b border-[#ececea] bg-[#fbfbfa] px-6 py-3 text-xs font-black uppercase tracking-wide text-[#8b8a84]">{group.label}</div>{group.items.map((s) => <ScheduleEntryRow key={s.firestoreId} s={s} completed={tab === "completed"} canManage={canManageSession(s)} isLegacy={!s.trainerVid} onEdit={onEdit} onDelete={onDelete} onClaim={onClaim} />)}</div>)}</div></Card>;
 }
 
 export default function OriginalStaffPage() {
