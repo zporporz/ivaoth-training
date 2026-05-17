@@ -153,7 +153,7 @@ function DocsManager() {
           </h1>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+        <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
           <Card>
             <div className="mb-4 flex items-center justify-between">
               <div className="text-xs font-black uppercase text-[#8b8a84]">
@@ -169,19 +169,14 @@ function DocsManager() {
 
             <div className="space-y-4">
               <input value={form.title} onChange={(e) => updateField("title", e.target.value)} placeholder="Title" className="w-full rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold outline-none" />
-
               <textarea value={form.description} onChange={(e) => updateField("description", e.target.value)} placeholder="Description" rows={3} className="w-full rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold outline-none" />
-
               <select value={form.type} onChange={(e) => updateField("type", e.target.value)} className="w-full rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold outline-none">
                 <option>YouTube</option>
                 <option>Website</option>
                 <option>PDF</option>
               </select>
-
               <input value={form.url} onChange={(e) => updateField("url", e.target.value)} placeholder="Resource URL" className="w-full rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold outline-none" />
-
               <input value={form.thumbnailUrl} onChange={(e) => updateField("thumbnailUrl", e.target.value)} placeholder="Thumbnail URL / card cover image" className="w-full rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold outline-none" />
-
               <input value={form.order} onChange={(e) => updateField("order", e.target.value.replace(/[^0-9]/g, ""))} placeholder="Order e.g. 1, 2, 3" inputMode="numeric" className="w-full rounded-2xl border border-[#dddbd6] px-4 py-3 font-bold outline-none" />
 
               <label className="flex items-center gap-3 rounded-2xl border border-[#ececea] bg-[#fbfbfa] px-4 py-3 font-bold text-[#4b4b48]">
@@ -200,30 +195,32 @@ function DocsManager() {
               training docs database
             </div>
 
-            {docs.length === 0 ? (
-              <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">No docs yet.</div>
-            ) : (
-              docs.map((item) => (
-                <div key={item.firestoreId} className="flex items-center justify-between border-b border-[#ececea] px-6 py-5">
-                  <div>
-                    <div className="font-black">{item.title}</div>
-                    <div className="mt-1 text-sm font-bold italic text-[#8b8a84]">
-                      #{item.order ?? "-"} · {item.type} {item.active === false ? "· inactive" : ""}
+            <div className="max-h-[calc(100vh-16rem)] overflow-y-auto">
+              {docs.length === 0 ? (
+                <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">No docs yet.</div>
+              ) : (
+                docs.map((item) => (
+                  <div key={item.firestoreId} className="flex items-center justify-between border-b border-[#ececea] px-6 py-5">
+                    <div>
+                      <div className="font-black">{item.title}</div>
+                      <div className="mt-1 text-sm font-bold italic text-[#8b8a84]">
+                        #{item.order ?? "-"} · {item.type} {item.active === false ? "· inactive" : ""}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button onClick={() => handleEdit(item)} className="rounded-full border border-[#dddbd6] px-3 py-1 text-xs font-black">
+                        edit
+                      </button>
+
+                      <button onClick={() => handleDelete(item.firestoreId)} className="rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-black text-red-600">
+                        delete
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex gap-2">
-                    <button onClick={() => handleEdit(item)} className="rounded-full border border-[#dddbd6] px-3 py-1 text-xs font-black">
-                      edit
-                    </button>
-
-                    <button onClick={() => handleDelete(item.firestoreId)} className="rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-black text-red-600">
-                      delete
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </Card>
         </div>
       </section>
