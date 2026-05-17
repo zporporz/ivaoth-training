@@ -190,7 +190,7 @@ export default function Home() {
 
         <div className="mb-5 flex items-center gap-8 border-b border-[#dddbd6]">
           <button className="border-b-4 border-[#ff5a1f] pb-3 text-base font-black">
-            schedule{" "}
+            all sessions{" "}
             <span className="ml-2 rounded-full bg-black px-2 py-1 text-xs text-white">
               {dbSessions.length}
             </span>
