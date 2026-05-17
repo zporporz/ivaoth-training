@@ -34,13 +34,23 @@ function sessionToDate(session) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function buildUpNextFromSessions(sessions) {
+function buildSessionList(sessions, mode = "upcoming") {
   const now = new Date();
 
   return sessions
     .map((session) => ({ ...session, sessionDate: sessionToDate(session) }))
-    .filter((session) => session.sessionDate && session.sessionDate >= now)
-    .sort((a, b) => a.sessionDate.getTime() - b.sessionDate.getTime())
+    .filter((session) => {
+      if (!session.sessionDate) return false;
+
+      return mode === "history"
+        ? session.sessionDate < now
+        : session.sessionDate >= now;
+    })
+    .sort((a, b) => {
+      return mode === "history"
+        ? b.sessionDate.getTime() - a.sessionDate.getTime()
+        : a.sessionDate.getTime() - b.sessionDate.getTime();
+    })
     .map((session) => {
       const parts = session.date?.split("-") || [];
       const monthIndex = Number(parts[1]) - 1;
@@ -49,6 +59,8 @@ function buildUpNextFromSessions(sessions) {
       const program = programs.find((p) => p.code === session.program);
 
       return {
+        id: session.id,
+        mode,
         day,
         month,
         time: session.time || "-",
@@ -56,6 +68,7 @@ function buildUpNextFromSessions(sessions) {
         pos: session.position,
         title: `${session.type} · ${session.topic}`,
         name: session.traineeName || session.trainee || "Unknown trainee",
+        trainerName: session.trainerName || "",
         vid: session.traineeVid || "",
         color: program?.color || "#0a0a0a",
         mine: false,
@@ -68,7 +81,8 @@ export default function Home() {
   const [activeGroup, setActiveGroup] = useState("ATC");
   const [session, setSession] = useState(null);
 
-  const liveUpNext = buildUpNextFromSessions(dbSessions);
+  const liveUpNext = buildSessionList(dbSessions, "upcoming");
+  const historySessions = buildSessionList(dbSessions, "history");
 
   useEffect(() => {
     setSession(getClientSession());
@@ -119,9 +133,9 @@ export default function Home() {
             >
               REQUEST TRAINING
               <ArrowUpRight
-  size={18}
-  className="transition duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
-/>
+                size={18}
+                className="transition duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+              />
             </a>
           )}
         </div>
@@ -185,7 +199,7 @@ export default function Home() {
 
         <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
           <TrainingCalendar sessions={dbSessions} programs={programs} />
-          <UpNext upNext={liveUpNext} />
+          <UpNext upNext={liveUpNext} history={historySessions} />
         </div>
       </section>
     </main>
