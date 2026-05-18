@@ -11,12 +11,31 @@ const monthNames = [
   "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
 ];
 
+const bangkokFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: "Asia/Bangkok",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+function getBangkokParts() {
+  const parts = bangkokFormatter.formatToParts(new Date());
+
+  return {
+    year: parts.find((part) => part.type === "year")?.value,
+    month: parts.find((part) => part.type === "month")?.value,
+    day: parts.find((part) => part.type === "day")?.value,
+  };
+}
+
+function getBangkokTodayKey() {
+  const { year, month, day } = getBangkokParts();
+  return `${year}-${month}-${day}`;
+}
+
 function getBangkokNowDate() {
-  return new Date(
-    new Date().toLocaleString("en-US", {
-      timeZone: "Asia/Bangkok",
-    })
-  );
+  const { year, month, day } = getBangkokParts();
+  return new Date(Number(year), Number(month) - 1, Number(day), 12, 0, 0);
 }
 
 function toDateKey(date) {
@@ -30,7 +49,7 @@ function buildMonthGrid(cursor) {
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
 
-  const firstDay = new Date(year, month, 1);
+  const firstDay = new Date(year, month, 1, 12, 0, 0);
   const start = new Date(firstDay);
   start.setDate(1 - firstDay.getDay());
 
@@ -112,7 +131,7 @@ export default function TrainingCalendar({ sessions, programs }) {
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   const grid = buildMonthGrid(cursor);
-  const todayKey = toDateKey(getBangkokNowDate());
+  const todayKey = getBangkokTodayKey();
 
   function handleSessionClick(session) {
     const loginSession = getClientSession();
