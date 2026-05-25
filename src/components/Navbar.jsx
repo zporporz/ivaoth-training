@@ -41,7 +41,7 @@ export default function Navbar() {
           </a>
 
           <a href="/training-list" className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]">
-            Training List
+            Trainer List
           </a>
 
           {session.hasTrainingAccess && (
