@@ -54,6 +54,19 @@ export async function POST(request) {
         content: "<@&1494746777432096818>",
         username: "IVAO TH Training Portal",
         embeds: [buildEmbed(action, session)],
+        components: [
+          {
+            type: 1,
+            components: [
+              {
+                type: 2,
+                style: 5,
+                label: "Open Training Portal",
+                url: "https://ivaoth-training.vercel.app/staff",
+              },
+            ],
+          },
+        ],
         allowed_mentions: {
           roles: ["1494746777432096818"],
         },
