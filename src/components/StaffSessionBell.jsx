@@ -5,11 +5,15 @@ import { Bell } from "lucide-react";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
-function getSessionTimestamp(session) {
-  const value = session?.createdAt || session?.updatedAt;
-
+function getTimestampValue(value) {
   if (typeof value?.toMillis === "function") return value.toMillis();
   if (typeof value?.seconds === "number") return value.seconds * 1000;
+  return 0;
+}
+
+function getCreatedTimestamp(session) {
+  const created = getTimestampValue(session?.createdAt);
+  if (created) return created;
 
   if (session?.date) {
     const cleanTime = String(session?.time || "0000").replace(/\D/g, "");
@@ -22,12 +26,16 @@ function getSessionTimestamp(session) {
   return 0;
 }
 
+function getUpdatedTimestamp(session) {
+  return getTimestampValue(session?.updatedAt) || getCreatedTimestamp(session);
+}
+
 function storageKey(vid) {
   return `staff-session-bell-last-seen-${vid}`;
 }
 
-function newIdsKey(vid) {
-  return `staff-session-bell-new-ids-${vid}`;
+function noticeKey(vid) {
+  return `staff-session-bell-notices-${vid}`;
 }
 
 export default function StaffSessionBell({ session }) {
@@ -53,56 +61,87 @@ export default function StaffSessionBell({ session }) {
     return () => unsubscribe();
   }, [enabled]);
 
-  const latestTimestamp = useMemo(() => {
-    return sessions.reduce((latest, item) => Math.max(latest, getSessionTimestamp(item)), 0);
+  const latestActivity = useMemo(() => {
+    return sessions.reduce((latest, item) => Math.max(latest, getCreatedTimestamp(item), getUpdatedTimestamp(item)), 0);
   }, [sessions]);
 
   const newSessions = useMemo(() => {
     if (!lastSeen) return [];
-    return sessions.filter((item) => getSessionTimestamp(item) > lastSeen);
+    return sessions.filter((item) => getCreatedTimestamp(item) > lastSeen);
+  }, [sessions, lastSeen]);
+
+  const modifiedSessions = useMemo(() => {
+    if (!lastSeen) return [];
+
+    return sessions.filter((item) => {
+      const created = getCreatedTimestamp(item);
+      const updated = getUpdatedTimestamp(item);
+      return created <= lastSeen && updated > lastSeen;
+    });
   }, [sessions, lastSeen]);
 
   useEffect(() => {
     if (!enabled || typeof window === "undefined") return;
-    if (!lastSeen && latestTimestamp) {
-      localStorage.setItem(storageKey(vid), String(latestTimestamp));
-      setLastSeen(latestTimestamp);
+    if (!lastSeen && latestActivity) {
+      localStorage.setItem(storageKey(vid), String(latestActivity));
+      setLastSeen(latestActivity);
     }
-  }, [enabled, latestTimestamp, lastSeen, vid]);
+  }, [enabled, latestActivity, lastSeen, vid]);
 
   if (!enabled) return null;
 
-  function openNewSessions() {
+  function openNotices() {
     if (typeof window === "undefined") return;
 
-    const ids = newSessions.map((item) => item.firestoreId);
-    sessionStorage.setItem(newIdsKey(vid), JSON.stringify(ids));
+    sessionStorage.setItem(
+      noticeKey(vid),
+      JSON.stringify({
+        newIds: newSessions.map((item) => item.firestoreId),
+        modifiedIds: modifiedSessions.map((item) => item.firestoreId),
+      })
+    );
 
-    if (latestTimestamp) {
-      localStorage.setItem(storageKey(vid), String(latestTimestamp));
-      setLastSeen(latestTimestamp);
+    if (latestActivity) {
+      localStorage.setItem(storageKey(vid), String(latestActivity));
+      setLastSeen(latestActivity);
     }
 
-    window.location.href = "/staff?new=1";
+    window.location.href = "/staff?notice=1";
   }
 
-  const count = newSessions.length;
+  const newCount = newSessions.length;
+  const modifiedCount = modifiedSessions.length;
+  const count = newCount + modifiedCount;
+  const hasNew = newCount > 0;
+  const hasModified = !hasNew && modifiedCount > 0;
 
   return (
     <button
       type="button"
-      onClick={openNewSessions}
-      title={count ? `${count} new training session${count > 1 ? "s" : ""}` : "No new training sessions"}
+      onClick={openNotices}
+      title={
+        hasNew
+          ? `${newCount} new training session${newCount > 1 ? "s" : ""}`
+          : hasModified
+          ? `${modifiedCount} modified training session${modifiedCount > 1 ? "s" : ""}`
+          : "No new or modified training sessions"
+      }
       className={`relative inline-flex h-11 w-11 items-center justify-center rounded-full border font-black transition ${
-        count
+        hasNew
           ? "border-[#ff5a1f] bg-[#fff3ed] text-[#ff5a1f] shadow-sm hover:-translate-y-0.5 hover:shadow-md"
+          : hasModified
+          ? "border-[#16a34a] bg-[#e3f7ea] text-[#16a34a] shadow-sm hover:-translate-y-0.5 hover:shadow-md"
           : "border-[#dddbd6] bg-white text-[#8b8a84] hover:bg-[#f3f3f1]"
       }`}
     >
       <Bell size={19} strokeWidth={2.8} />
 
       {count > 0 && (
-        <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#ff5a1f] px-1.5 text-[10px] font-black leading-none text-white shadow-sm">
+        <span
+          className={`absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-black leading-none text-white shadow-sm ${
+            hasNew ? "bg-[#ff5a1f]" : "bg-[#16a34a]"
+          }`}
+        >
           {count > 9 ? "9+" : count}
         </span>
       )}
