@@ -13,8 +13,8 @@ function makeBadge(type) {
   badge.textContent = type === "new" ? "NEW" : "MODIFIED";
   badge.className =
     type === "new"
-      ? "rounded-full bg-[#ff5a1f] px-2 py-1 text-[10px] font-black text-white"
-      : "rounded-full bg-[#16a34a] px-2 py-1 text-[10px] font-black text-white";
+      ? "inline-flex w-fit shrink-0 rounded-full bg-[#ff5a1f] px-2 py-1 text-[10px] font-black leading-none text-white"
+      : "inline-flex w-fit shrink-0 rounded-full bg-[#16a34a] px-2 py-1 text-[10px] font-black leading-none text-white";
   return badge;
 }
 
@@ -36,17 +36,46 @@ function clearExistingBadges() {
   document
     .querySelectorAll("[data-staff-notice-badge]")
     .forEach((badge) => badge.remove());
+
+  document
+    .querySelectorAll("[data-staff-notice-row]")
+    .forEach((row) => {
+      row.removeAttribute("data-staff-notice-row");
+      row.classList.remove(
+        "bg-[#fff7ed]",
+        "bg-[#f0fdf4]",
+        "outline-[#ff5a1f]/30",
+        "outline-[#16a34a]/30",
+        "outline",
+        "outline-1",
+        "outline-offset-[-1px]"
+      );
+    });
+}
+
+function getScheduleRows() {
+  return Array.from(document.querySelectorAll("div")).filter((item) => {
+    const className = String(item.className || "");
+    return (
+      className.includes("grid") &&
+      className.includes("grid-cols-[90px_120px_80px_1fr_220px]") &&
+      item.children?.length >= 5
+    );
+  });
+}
+
+function findScheduleRow(sessionId) {
+  const shortId = String(sessionId || "").slice(0, 7);
+  if (!shortId) return null;
+
+  return getScheduleRows().find((item) => {
+    const idCell = item.children?.[0];
+    return String(idCell?.textContent || "").trim() === shortId;
+  });
 }
 
 function applyBadgeToRow(sessionId, type) {
-  const shortId = String(sessionId || "").slice(0, 7);
-  if (!shortId) return false;
-
-  const rows = Array.from(document.querySelectorAll("div"));
-  const row = rows.find((item) => {
-    const text = item.textContent || "";
-    return text.includes(shortId) && text.includes("trainer:");
-  });
+  const row = findScheduleRow(sessionId);
 
   if (!row) return false;
   if (row.querySelector(`[data-staff-notice-badge="${type}"]`)) return true;
@@ -57,10 +86,9 @@ function applyBadgeToRow(sessionId, type) {
   if (titleLine) {
     titleLine.classList.add("flex", "flex-wrap", "items-center", "gap-2");
     titleLine.appendChild(makeBadge(type));
-  } else {
-    row.appendChild(makeBadge(type));
   }
 
+  row.dataset.staffNoticeRow = type;
   row.classList.add(
     type === "new" ? "bg-[#fff7ed]" : "bg-[#f0fdf4]",
     type === "new" ? "outline-[#ff5a1f]/30" : "outline-[#16a34a]/30",
@@ -94,13 +122,7 @@ export default function StaffNoticeBadgeLayer() {
       notices.newIds.forEach((id) => applyBadgeToRow(id, "new"));
       notices.modifiedIds.forEach((id) => applyBadgeToRow(id, "modified"));
 
-      const firstId = allIds[0]?.slice(0, 7);
-      const firstRow = firstId
-        ? Array.from(document.querySelectorAll("div")).find((item) => {
-            const text = item.textContent || "";
-            return text.includes(firstId) && text.includes("trainer:");
-          })
-        : null;
+      const firstRow = findScheduleRow(allIds[0]);
 
       if (firstRow && tries <= 2) {
         firstRow.scrollIntoView({ behavior: "smooth", block: "center" });
