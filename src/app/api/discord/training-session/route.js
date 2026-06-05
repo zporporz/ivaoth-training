@@ -51,8 +51,12 @@ export async function POST(request) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        content: "<@&1494746777432096818>",
         username: "IVAO TH Training Portal",
         embeds: [buildEmbed(action, session)],
+        allowed_mentions: {
+          roles: ["1494746777432096818"],
+        },
       }),
     });
 
