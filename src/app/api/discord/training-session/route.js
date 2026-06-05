@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+const TRAINING_PORTAL_URL = "https://ivaoth-training.vercel.app/staff";
+
 function field(name, value, inline = true) {
   return {
     name,
@@ -24,6 +26,7 @@ function buildEmbed(action, session) {
       field("Trainee", `${session.traineeName || session.trainee || "-"}${session.traineeVid ? ` (${session.traineeVid})` : ""}`, false),
       field("Trainer", `${session.trainerName || "-"}${session.trainerStaffPosition ? ` · ${session.trainerStaffPosition}` : ""}`, false),
       field("Status", session.status),
+      field("Open Portal", TRAINING_PORTAL_URL, false),
     ],
     footer: {
       text: "IVAO Thailand Training Portal",
@@ -62,7 +65,7 @@ export async function POST(request) {
                 type: 2,
                 style: 5,
                 label: "Open Training Portal",
-                url: "https://ivaoth-training.vercel.app/staff",
+                url: TRAINING_PORTAL_URL,
               },
             ],
           },
