@@ -66,8 +66,12 @@ export default function Navbar() {
       )}
 
       {session ? (
-        <div className="flex items-center gap-3">
-          {session.hasTrainingAccess && <StaffSessionBell session={session} />}
+        <div className="ml-6 flex items-center gap-4">
+          {session.hasTrainingAccess && (
+            <div className="shrink-0 pl-2">
+              <StaffSessionBell session={session} />
+            </div>
+          )}
 
           <UserBadge
             name={session.name}
