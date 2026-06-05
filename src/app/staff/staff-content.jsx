@@ -12,9 +12,14 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
+
 import Navbar from "../../components/Navbar";
 import Card from "../../components/ui/Card";
+import ScheduleEntriesPanel from "../../components/staff/ScheduleEntriesPanel";
+import SessionForm from "../../components/staff/SessionForm";
+import TeachingSchedule from "../../components/staff/TeachingSchedule";
 import { getClientSession } from "../../lib/authSession";
+import { notifyDiscordTraining } from "../../lib/discordTrainingNotify";
 import { db } from "../../lib/firebase";
 import {
   canClaimLegacySession,
@@ -23,7 +28,6 @@ import {
   canManageWebmasters,
   canManualAddTraining,
 } from "../../lib/permissions";
-import programs from "../../data/programs";
 
 const emptyForm = {
   date: "",
@@ -36,27 +40,7 @@ const emptyForm = {
   topic: "",
   remarks: "",
 };
-const monthFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  year: "numeric",
-  timeZone: "UTC",
-});
 
-function StatusBadge({ status }) {
-  const style =
-    status === "Exam"
-      ? "bg-red-600 text-white"
-      : status === "Official"
-        ? "bg-sky-600 text-white"
-        : status === "Completed"
-          ? "bg-[#ececea] text-[#4b4b48]"
-          : "bg-[#e3f7ea] text-[#0b6e35]";
-  return (
-    <span className={`rounded-full px-3 py-1 text-xs font-black ${style}`}>
-      {status}
-    </span>
-  );
-}
 function cleanTrainerName(value) {
   return value
     ? String(value)
@@ -64,379 +48,18 @@ function cleanTrainerName(value) {
         .trim()
     : "";
 }
+
 function getTrainerName(session) {
   return cleanTrainerName(session?.displayName || session?.name) || "-";
 }
+
 function getTrainerPosition(session) {
   return session?.trainingStaffPosition || session?.staffPosition || null;
 }
+
 function trainerLabel(session) {
-  const meta = [session?.vid, getTrainerPosition(session)]
-    .filter(Boolean)
-    .join(" · ");
-  return meta
-    ? `${getTrainerName(session)} · ${meta}`
-    : getTrainerName(session);
-}
-function timeToPickerValue(value) {
-  const match = String(value || "").match(/^(\d{2})(\d{2})Z?$/i);
-  return match ? `${match[1]}:${match[2]}` : "";
-}
-function pickerValueToZulu(value) {
-  if (!value) return "";
-  const [hour = "00", minute = "00"] = value.split(":");
-  return `${hour.padStart(2, "0")}${minute.padStart(2, "0")}Z`;
-}
-function sessionToDate(session) {
-  const rawDate = String(session?.date || "").trim();
-  const rawTime = String(session?.time || "").replace(/\D/g, "");
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(rawDate) || rawTime.length < 4) return null;
-  const date = new Date(
-    `${rawDate}T${rawTime.slice(0, 2)}:${rawTime.slice(2, 4)}:00Z`,
-  );
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-function monthLabel(item) {
-  return item.sessionDate
-    ? monthFormatter.format(item.sessionDate).toUpperCase()
-    : "NO DATE";
-}
-function splitSessionsByTime(items) {
-  const now = new Date();
-  const withDates = items
-    .map((s) => ({ ...s, sessionDate: sessionToDate(s) }))
-    .filter((s) => s.sessionDate);
-  return {
-    upcoming: withDates
-      .filter((s) => s.sessionDate >= now)
-      .sort((a, b) => a.sessionDate - b.sessionDate),
-    completed: withDates
-      .filter((s) => s.sessionDate < now)
-      .sort((a, b) => b.sessionDate - a.sessionDate),
-  };
-}
-function getMonthOptions(items) {
-  return [...new Set(items.map(monthLabel))];
-}
-function filterByMonth(items, month) {
-  return month === "ALL"
-    ? items
-    : items.filter((item) => monthLabel(item) === month);
-}
-function groupByMonth(items) {
-  return items.reduce((acc, item) => {
-    const label = monthLabel(item);
-    const group = acc.find((g) => g.label === label);
-    if (group) group.items.push(item);
-    else acc.push({ label, items: [item] });
-    return acc;
-  }, []);
-}
-function MonthSelect({ value, onChange, options }) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="rounded-full border border-[#ececea] bg-white px-4 py-2 text-xs font-black text-[#4b4b48] outline-none"
-    >
-      <option value="ALL">ALL MONTHS</option>
-      {options.map((month) => (
-        <option key={month} value={month}>
-          {month}
-        </option>
-      ))}
-    </select>
-  );
-}
-
-function TeachingRow({ s, completed, canEdit, canDelete, onEdit, onDelete }) {
-  return (
-    <div className="grid grid-cols-[120px_90px_1fr_210px] items-center gap-4 border-b border-[#ececea] px-6 py-5 last:border-b-0">
-      <div>
-        <div className="font-black">{s.date}</div>
-        <div className="text-sm font-bold italic text-[#8b8a84]">{s.time}</div>
-      </div>
-      <div>
-        <div className="font-black">{s.program}</div>
-        <div className="mt-1 text-xs font-black uppercase text-[#8b8a84]">
-          {s.position}
-        </div>
-      </div>
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="font-black">{s.type}</div>
-          <StatusBadge
-            status={
-              completed && s.status === "Scheduled" ? "Completed" : s.status
-            }
-          />
-        </div>
-        <div className="mt-1 truncate text-sm font-semibold text-[#4b4b48]">
-          {s.topic}
-        </div>
-        <div className="mt-1 text-sm font-semibold italic text-[#8b8a84]">
-          {s.traineeName || s.trainee} {s.traineeVid ? `(${s.traineeVid})` : ""}
-        </div>
-      </div>
-      <div className="flex items-center justify-end gap-2">
-        {canEdit && (
-          <button
-            onClick={() => onEdit(s)}
-            className="cursor-pointer rounded-full border border-[#dddbd6] bg-white px-3 py-1 text-xs font-black text-[#4b4b48] hover:bg-[#f3f3f1]"
-          >
-            edit
-          </button>
-        )}
-        {canDelete && (
-          <button
-            onClick={() => onDelete(s)}
-            className="cursor-pointer rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-black text-red-600 hover:bg-red-100"
-          >
-            delete
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function TeachingSchedule({
-  loading,
-  sessions,
-  tab,
-  setTab,
-  currentUser,
-  onEdit,
-  onDelete,
-}) {
-  const [month, setMonth] = useState("ALL");
-  const { upcoming, completed } = splitSessionsByTime(sessions);
-  const source = tab === "completed" ? completed : upcoming;
-  const options = getMonthOptions(source);
-  const active = filterByMonth(source, month);
-  const groups = groupByMonth(active);
-  return (
-    <Card className="mb-6 overflow-hidden p-0">
-      <div className="flex flex-col gap-4 border-b border-[#ececea] px-6 py-5 md:flex-row md:items-center md:justify-between">
-        <div>
-          <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
-            personal trainer view
-          </div>
-          <div className="mt-1 text-2xl font-black">
-            <span className="font-normal italic text-[#8b8a84]">my/</span>
-            teaching schedule
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <MonthSelect value={month} onChange={setMonth} options={options} />
-          <div className="grid grid-cols-2 rounded-full border border-[#ececea] bg-[#fbfbfa] p-1">
-            <button
-              onClick={() => setTab("upcoming")}
-              className={`rounded-full px-4 py-2 text-xs font-black transition ${tab === "upcoming" ? "bg-black text-white" : "text-[#8b8a84] hover:bg-white"}`}
-            >
-              Upcoming ({upcoming.length})
-            </button>
-            <button
-              onClick={() => setTab("completed")}
-              className={`rounded-full px-4 py-2 text-xs font-black transition ${tab === "completed" ? "bg-[#0a2342] text-white" : "text-[#8b8a84] hover:bg-white"}`}
-            >
-              Completed ({completed.length})
-            </button>
-          </div>
-          <div className="rounded-full bg-black px-4 py-2 text-sm font-black text-white">
-            {sessions.length} sessions
-          </div>
-        </div>
-      </div>
-      {loading ? (
-        <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">
-          Loading your sessions...
-        </div>
-      ) : sessions.length === 0 ? (
-        <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">
-          You do not have any assigned teaching sessions yet.
-        </div>
-      ) : active.length === 0 ? (
-        <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">
-          No sessions in this filter.
-        </div>
-      ) : (
-        groups.map((group) => (
-          <div key={group.label}>
-            <div className="border-b border-[#ececea] bg-[#fbfbfa] px-6 py-3 text-xs font-black uppercase tracking-wide text-[#8b8a84]">
-              {group.label}
-            </div>
-            {group.items.map((s) => (
-              <TeachingRow
-                key={`mine-${s.firestoreId}`}
-                s={s}
-                completed={tab === "completed"}
-                canEdit={canEditSession(currentUser, s)}
-                canDelete={canDeleteSession(currentUser, s)}
-                onEdit={onEdit}
-                onDelete={onDelete}
-              />
-            ))}
-          </div>
-        ))
-      )}
-    </Card>
-  );
-}
-
-function ScheduleEntryRow({
-  s,
-  completed,
-  canEdit,
-  canDelete,
-  canClaim,
-  onEdit,
-  onDelete,
-  onClaim,
-}) {
-  return (
-    <div className="grid grid-cols-[90px_120px_80px_1fr_220px] items-center gap-4 border-b border-[#ececea] px-6 py-5 last:border-b-0">
-      <div className="text-sm font-black text-[#8b8a84]">
-        {s.firestoreId.slice(0, 7)}
-      </div>
-      <div>
-        <div className="font-black">{s.date}</div>
-        <div className="text-sm font-bold italic text-[#8b8a84]">{s.time}</div>
-      </div>
-      <div className="font-black">{s.program}</div>
-      <div>
-        <div className="font-black">{s.type}</div>
-        <div className="mt-1 text-sm font-semibold text-[#4b4b48]">
-          {s.topic}
-        </div>
-        <div className="mt-1 text-sm font-semibold italic text-[#8b8a84]">
-          {s.position} · {s.traineeName || s.trainee}{" "}
-          {s.traineeVid ? `(${s.traineeVid})` : ""}
-        </div>
-        <div className="mt-1 text-xs font-black uppercase text-[#8b8a84]">
-          trainer: {s.trainerName || "Legacy session"}
-          {s.trainerStaffPosition ? ` · ${s.trainerStaffPosition}` : ""}
-        </div>
-      </div>
-      <div className="flex items-center justify-end gap-2">
-        <StatusBadge
-          status={
-            completed && s.status === "Scheduled" ? "Completed" : s.status
-          }
-        />
-        {canEdit && (
-          <button
-            onClick={() => onEdit(s)}
-            className="cursor-pointer rounded-full border border-[#dddbd6] bg-white px-3 py-1 text-xs font-black text-[#4b4b48] hover:bg-[#f3f3f1]"
-          >
-            edit
-          </button>
-        )}
-        {canDelete && (
-          <button
-            onClick={() => onDelete(s)}
-            className="cursor-pointer rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-black text-red-600 hover:bg-red-100"
-          >
-            delete
-          </button>
-        )}
-        {!canEdit && !canDelete && canClaim && (
-          <button
-            onClick={() => onClaim(s)}
-            className="cursor-pointer rounded-full border border-[#0a2342] bg-[#0a2342] px-3 py-1 text-xs font-black text-white hover:bg-[#163b6d]"
-          >
-            claim
-          </button>
-        )}
-        {!canEdit && !canDelete && !canClaim && (
-          <span className="rounded-full border border-[#ececea] bg-[#fbfbfa] px-3 py-1 text-xs font-black text-[#8b8a84]">
-            view only
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function ScheduleEntriesPanel({
-  loading,
-  sessions,
-  tab,
-  setTab,
-  currentUser,
-  onEdit,
-  onDelete,
-  onClaim,
-}) {
-  const [month, setMonth] = useState("ALL");
-  const { upcoming, completed } = splitSessionsByTime(sessions);
-  const source = tab === "completed" ? completed : upcoming;
-  const options = getMonthOptions(source);
-  const active = filterByMonth(source, month);
-  const groups = groupByMonth(active);
-  return (
-    <Card className="overflow-hidden p-0">
-      <div className="flex flex-col gap-4 border-b border-[#ececea] px-6 py-5 md:flex-row md:items-center md:justify-between">
-        <div className="text-2xl font-black">
-          <span className="font-normal italic text-[#8b8a84]">training/</span>
-          schedule entries
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <MonthSelect value={month} onChange={setMonth} options={options} />
-          <div className="grid grid-cols-2 rounded-full border border-[#ececea] bg-[#fbfbfa] p-1">
-            <button
-              onClick={() => setTab("upcoming")}
-              className={`rounded-full px-4 py-2 text-xs font-black transition ${tab === "upcoming" ? "bg-black text-white" : "text-[#8b8a84] hover:bg-white"}`}
-            >
-              Upcoming ({upcoming.length})
-            </button>
-            <button
-              onClick={() => setTab("completed")}
-              className={`rounded-full px-4 py-2 text-xs font-black transition ${tab === "completed" ? "bg-[#0a2342] text-white" : "text-[#8b8a84] hover:bg-white"}`}
-            >
-              Completed ({completed.length})
-            </button>
-          </div>
-        </div>
-      </div>
-      <div className="max-h-[calc(100vh-16rem)] overflow-y-auto">
-        {loading ? (
-          <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">
-            Loading sessions...
-          </div>
-        ) : sessions.length === 0 ? (
-          <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">
-            No sessions yet.
-          </div>
-        ) : active.length === 0 ? (
-          <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">
-            No sessions in this filter.
-          </div>
-        ) : (
-          groups.map((group) => (
-            <div key={group.label}>
-              <div className="sticky top-0 z-10 border-b border-[#ececea] bg-[#fbfbfa] px-6 py-3 text-xs font-black uppercase tracking-wide text-[#8b8a84]">
-                {group.label}
-              </div>
-              {group.items.map((s) => (
-                <ScheduleEntryRow
-                  key={s.firestoreId}
-                  s={s}
-                  completed={tab === "completed"}
-                  canEdit={canEditSession(currentUser, s)}
-                  canDelete={canDeleteSession(currentUser, s)}
-                  canClaim={canClaimLegacySession(currentUser, s)}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onClaim={onClaim}
-                />
-              ))}
-            </div>
-          ))
-        )}
-      </div>
-    </Card>
-  );
+  const meta = [session?.vid, getTrainerPosition(session)].filter(Boolean).join(" · ");
+  return meta ? `${getTrainerName(session)} · ${meta}` : getTrainerName(session);
 }
 
 export default function OriginalStaffPage() {
@@ -448,32 +71,40 @@ export default function OriginalStaffPage() {
   const [traineeLookupStatus, setTraineeLookupStatus] = useState("idle");
   const [teachingTab, setTeachingTab] = useState("upcoming");
   const [entriesTab, setEntriesTab] = useState("upcoming");
+
   const canOpenWebmasters = canManageWebmasters(loginSession);
-  const canOpenManualTraining = canManualAddTraining(
-    loginSession,
-    canOpenWebmasters,
-  );
+  const canOpenManualTraining = canManualAddTraining(loginSession, canOpenWebmasters);
+
   function updateForm(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
+
   useEffect(() => {
     setLoginSession(getClientSession());
     setLoading(true);
+
     const q = query(collection(db, "trainingSessions"), orderBy("date", "asc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setSessions(
-        snapshot.docs.map((item) => ({ firestoreId: item.id, ...item.data() })),
+        snapshot.docs.map((item) => ({
+          firestoreId: item.id,
+          ...item.data(),
+        })),
       );
       setLoading(false);
     });
+
     return () => unsubscribe();
   }, []);
+
   useEffect(() => {
     const traineeVid = form.traineeVid.trim();
+
     if (traineeVid.length < 5) {
       setTraineeLookupStatus("idle");
       return;
     }
+
     const controller = new AbortController();
     const timeout = setTimeout(async () => {
       try {
@@ -481,10 +112,12 @@ export default function OriginalStaffPage() {
         const response = await fetch(`/api/ivao/user/${traineeVid}`, {
           signal: controller.signal,
         });
+
         if (!response.ok) {
           setTraineeLookupStatus("not-found");
           return;
         }
+
         const data = await response.json();
         setForm((prev) =>
           prev.traineeVid !== traineeVid
@@ -496,22 +129,12 @@ export default function OriginalStaffPage() {
         if (error.name !== "AbortError") setTraineeLookupStatus("error");
       }
     }, 600);
+
     return () => {
       clearTimeout(timeout);
       controller.abort();
     };
   }, [form.traineeVid]);
-  async function notifyDiscordTraining(action, session) {
-    try {
-      await fetch("/api/discord/training-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, session }),
-      });
-    } catch (error) {
-      console.warn("Discord training notification failed", error);
-    }
-  }
 
   async function handlePublish() {
     if (
@@ -522,9 +145,7 @@ export default function OriginalStaffPage() {
       !form.traineeVid ||
       !form.topic
     ) {
-      alert(
-        "กรอก Date, Time, Position, Trainee Name, Trainee VID และ Topic ก่อน",
-      );
+      alert("กรอก Date, Time, Position, Trainee Name, Trainee VID และ Topic ก่อน");
       return;
     }
 
@@ -533,7 +154,7 @@ export default function OriginalStaffPage() {
       return;
     }
 
-    const editingSession = sessions.find((s) => s.firestoreId === editingId);
+    const editingSession = sessions.find((session) => session.firestoreId === editingId);
 
     if (editingId && !canEditSession(loginSession, editingSession || {})) {
       alert("แก้ไขได้เฉพาะ session ที่คุณเป็นคนสอนเท่านั้น");
@@ -555,8 +176,7 @@ export default function OriginalStaffPage() {
       trainerName: editingSession?.trainerName || getTrainerName(loginSession),
       trainerVid: editingSession?.trainerVid || loginSession.vid,
       trainerStaffPosition:
-        editingSession?.trainerStaffPosition ||
-        getTrainerPosition(loginSession),
+        editingSession?.trainerStaffPosition || getTrainerPosition(loginSession),
       status: isExam ? "Exam" : isOfficial ? "Official" : "Scheduled",
       updatedAt: serverTimestamp(),
     };
@@ -576,11 +196,13 @@ export default function OriginalStaffPage() {
     setForm(emptyForm);
     setTraineeLookupStatus("idle");
   }
+
   async function handleClaimSession(session) {
     if (!canClaimLegacySession(loginSession, session)) {
       alert("Session นี้ claim ไม่ได้");
       return;
     }
+
     await updateDoc(doc(db, "trainingSessions", session.firestoreId), {
       trainerName: getTrainerName(loginSession),
       trainerVid: loginSession.vid,
@@ -588,18 +210,22 @@ export default function OriginalStaffPage() {
       updatedAt: serverTimestamp(),
     });
   }
+
   async function handleDelete(session) {
     if (!canDeleteSession(loginSession, session)) {
       alert("ลบได้เฉพาะ session ที่คุณเป็นคนสอนเท่านั้น");
       return;
     }
+
     await deleteDoc(doc(db, "trainingSessions", session.firestoreId));
   }
+
   function handleEdit(session) {
     if (!canEditSession(loginSession, session)) {
       alert("แก้ไขได้เฉพาะ session ที่คุณเป็นคนสอนเท่านั้น");
       return;
     }
+
     setEditingId(session.firestoreId);
     setTraineeLookupStatus("idle");
     setForm({
@@ -615,30 +241,34 @@ export default function OriginalStaffPage() {
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
   function handleCancelEdit() {
     setEditingId(null);
     setForm(emptyForm);
     setTraineeLookupStatus("idle");
   }
+
   const mySessions = loginSession?.vid
     ? sessions.filter(
-        (session) =>
-          String(session.trainerVid || "") === String(loginSession.vid),
+        (session) => String(session.trainerVid || "") === String(loginSession.vid),
       )
     : [];
+
   return (
     <main className="relative z-10 min-h-screen px-6 py-6">
       <Navbar />
+
       <section className="mx-auto max-w-[1480px] py-10">
         <div className="mb-8">
           <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
             ivao-th / training department / staff console
           </div>
           <h1 className="mt-3 text-5xl font-black tracking-[-0.04em]">
-            <span className="font-normal italic text-[#4b4b48]">Staff</span>{" "}
-            console — manage schedule<span className="text-[#ff5a1f]">.</span>
+            <span className="font-normal italic text-[#4b4b48]">Staff</span> console —
+            manage schedule<span className="text-[#ff5a1f]">.</span>
           </h1>
         </div>
+
         {(canOpenWebmasters || canOpenManualTraining) && (
           <Card className="mb-6 border-[#0a2342]/20 bg-[#0a2342]/[0.03]">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -647,16 +277,14 @@ export default function OriginalStaffPage() {
                   core webmaster tools
                 </div>
                 <div className="mt-1 text-2xl font-black">
-                  <span className="font-normal italic text-[#8b8a84]">
-                    system/
-                  </span>
-                  access control
+                  <span className="font-normal italic text-[#8b8a84]">system/</span>access
+                  control
                 </div>
                 <div className="mt-2 text-sm font-semibold text-[#4b4b48]">
-                  Manage elevated access and manually add legacy training
-                  sessions.
+                  Manage elevated access and manually add legacy training sessions.
                 </div>
               </div>
+
               <div className="flex flex-wrap items-center gap-3">
                 {canOpenWebmasters && (
                   <a
@@ -666,6 +294,7 @@ export default function OriginalStaffPage() {
                     Manage Webmasters
                   </a>
                 )}
+
                 {canOpenManualTraining && (
                   <a
                     href="/staff/manual-training"
@@ -678,6 +307,7 @@ export default function OriginalStaffPage() {
             </div>
           </Card>
         )}
+
         <TeachingSchedule
           loading={loading}
           sessions={mySessions}
@@ -687,126 +317,19 @@ export default function OriginalStaffPage() {
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
+
         <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
-          <Card>
-            <div className="flex items-center justify-between">
-              <div className="text-xs font-black uppercase text-[#8b8a84]">
-                {editingId ? "Edit Session" : "Create Session"}
-              </div>
-              {editingId && (
-                <button
-                  onClick={handleCancelEdit}
-                  className="cursor-pointer rounded-full border border-[#dddbd6] bg-white px-3 py-1 text-xs font-black text-[#4b4b48] hover:bg-[#f3f3f1]"
-                >
-                  cancel edit
-                </button>
-              )}
-            </div>
-            <div className="mt-3 rounded-2xl border border-[#ececea] bg-[#fbfbfa] px-4 py-3 text-sm font-bold text-[#8b8a84]">
-              Trainer: {loginSession ? trainerLabel(loginSession) : "-"}
-            </div>
-            <div className="mt-5 space-y-4">
-              <input
-                type="date"
-                value={form.date}
-                onChange={(e) => updateForm("date", e.target.value)}
-                className="w-full cursor-pointer rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
-              />
-              <div className="relative">
-                <input
-                  type="time"
-                  step="300"
-                  value={timeToPickerValue(form.time)}
-                  onChange={(e) =>
-                    updateForm("time", pickerValueToZulu(e.target.value))
-                  }
-                  className="w-full cursor-pointer rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 pr-16 font-bold outline-none"
-                />
-                <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-sm font-black text-[#8b8a84]">
-                  Z
-                </span>
-              </div>
-              <select
-                value={form.program}
-                onChange={(e) => updateForm("program", e.target.value)}
-                className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
-              >
-                {programs.map((program) => (
-                  <option key={program.code} value={program.code}>
-                    {program.code} — {program.name}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={form.type}
-                onChange={(e) => updateForm("type", e.target.value)}
-                className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
-              >
-                <option>Theory Training</option>
-                <option>Unofficial Practical</option>
-                <option>Official Practical</option>
-                <option>Theory Exam</option>
-                <option>Practical Exam</option>
-              </select>
-              <input
-                value={form.position}
-                onChange={(e) => updateForm("position", e.target.value)}
-                placeholder="Position e.g. VTBS_TWR"
-                className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold uppercase outline-none"
-              />
-              <div>
-                <input
-                  value={form.traineeVid}
-                  onChange={(e) =>
-                    updateForm("traineeVid", e.target.value.replace(/\D/g, ""))
-                  }
-                  placeholder="Trainee VID *"
-                  inputMode="numeric"
-                  className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
-                />
-                {traineeLookupStatus !== "idle" && (
-                  <div
-                    className={`mt-2 text-xs font-black ${traineeLookupStatus === "found" ? "text-[#16a34a]" : traineeLookupStatus === "loading" ? "text-[#8b8a84]" : "text-red-600"}`}
-                  >
-                    {traineeLookupStatus === "loading" &&
-                      "Looking up IVAO profile..."}
-                    {traineeLookupStatus === "found" &&
-                      "Trainee name filled from IVAO profile."}
-                    {traineeLookupStatus === "not-found" &&
-                      "Could not find this VID. You can still type the name manually."}
-                    {traineeLookupStatus === "error" &&
-                      "Could not lookup VID right now. You can still type the name manually."}
-                  </div>
-                )}
-              </div>
-              <input
-                value={form.traineeName}
-                onChange={(e) => updateForm("traineeName", e.target.value)}
-                placeholder="Trainee name *"
-                className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
-              />
-              <textarea
-                value={form.topic}
-                onChange={(e) => updateForm("topic", e.target.value)}
-                placeholder="Session topic / what will be trained today"
-                rows={4}
-                className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
-              />
-              <textarea
-                value={form.remarks}
-                onChange={(e) => updateForm("remarks", e.target.value)}
-                placeholder="Remarks / preparation / frequency / notes"
-                rows={3}
-                className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
-              />
-              <button
-                onClick={handlePublish}
-                className="w-full cursor-pointer rounded-2xl bg-black px-5 py-3 font-black text-white transition hover:-translate-y-0.5 hover:bg-[#16a34a] hover:shadow-lg active:translate-y-0"
-              >
-                {editingId ? "Update Session" : "Publish Session"}
-              </button>
-            </div>
-          </Card>
+          <SessionForm
+            editingId={editingId}
+            form={form}
+            loginSession={loginSession}
+            traineeLookupStatus={traineeLookupStatus}
+            trainerLabel={trainerLabel}
+            onChange={updateForm}
+            onCancelEdit={handleCancelEdit}
+            onSubmit={handlePublish}
+          />
+
           <ScheduleEntriesPanel
             loading={loading}
             sessions={sessions}
