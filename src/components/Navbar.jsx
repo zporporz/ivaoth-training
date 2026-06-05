@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { getClientSession } from "../lib/authSession";
+import StaffSessionBell from "./StaffSessionBell";
 import UserBadge from "./UserBadge";
 
 const WEBMASTER_VID = "739898";
@@ -66,6 +67,8 @@ export default function Navbar() {
 
       {session ? (
         <div className="flex items-center gap-3">
+          {session.hasTrainingAccess && <StaffSessionBell session={session} />}
+
           <UserBadge
             name={session.name}
             role={session.hasTrainingAccess ? `Training Staff · ${session.vid}` : `${session.atcRating || "Member"} · ${session.vid}`}
