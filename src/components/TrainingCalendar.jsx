@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Card from "./ui/Card";
 import SessionDetailModal from "./SessionDetailModal";
 import LoginRequiredModal from "./LoginRequiredModal";
@@ -36,6 +36,13 @@ function getBangkokTodayKey() {
 function getBangkokNowDate() {
   const { year, month, day } = getBangkokParts();
   return new Date(Number(year), Number(month) - 1, Number(day), 12, 0, 0);
+}
+
+function cursorFromDateKey(dateKey) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey || "")) return getBangkokNowDate();
+
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return new Date(year, month - 1, day, 12, 0, 0);
 }
 
 function toDateKey(date) {
@@ -127,11 +134,41 @@ function SessionChip({ session, programs, onClick }) {
 
 export default function TrainingCalendar({ sessions, programs }) {
   const [cursor, setCursor] = useState(() => getBangkokNowDate());
+  const [todayKey, setTodayKey] = useState(() => getBangkokTodayKey());
   const [selectedSession, setSelectedSession] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
+  useEffect(() => {
+    let ignore = false;
+
+    async function syncTodayFromServer() {
+      try {
+        const response = await fetch("/api/time/today", { cache: "no-store" });
+        const data = await response.json();
+
+        if (!ignore && data?.todayKey) {
+          setTodayKey(data.todayKey);
+        }
+      } catch {
+        if (!ignore) setTodayKey(getBangkokTodayKey());
+      }
+    }
+
+    syncTodayFromServer();
+
+    const interval = window.setInterval(syncTodayFromServer, 60 * 1000);
+    window.addEventListener("focus", syncTodayFromServer);
+    document.addEventListener("visibilitychange", syncTodayFromServer);
+
+    return () => {
+      ignore = true;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", syncTodayFromServer);
+      document.removeEventListener("visibilitychange", syncTodayFromServer);
+    };
+  }, []);
+
   const grid = buildMonthGrid(cursor);
-  const todayKey = getBangkokTodayKey();
 
   function handleSessionClick(session) {
     const loginSession = getClientSession();
@@ -152,8 +189,19 @@ export default function TrainingCalendar({ sessions, programs }) {
     });
   }
 
-  function goToday() {
-    setCursor(getBangkokNowDate());
+  async function goToday() {
+    try {
+      const response = await fetch("/api/time/today", { cache: "no-store" });
+      const data = await response.json();
+      const nextTodayKey = data?.todayKey || getBangkokTodayKey();
+
+      setTodayKey(nextTodayKey);
+      setCursor(cursorFromDateKey(nextTodayKey));
+    } catch {
+      const fallbackTodayKey = getBangkokTodayKey();
+      setTodayKey(fallbackTodayKey);
+      setCursor(cursorFromDateKey(fallbackTodayKey));
+    }
   }
 
   const monthLabel = `${monthNames[cursor.getMonth()]} ${cursor.getFullYear()}`;
