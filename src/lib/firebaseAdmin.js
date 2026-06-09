@@ -31,6 +31,7 @@ export function getAdminDb() {
   const serviceAccount = getServiceAccount();
   adminDb = new Firestore({
     projectId: serviceAccount.projectId,
+    preferRest: true,
     credentials: {
       client_email: serviceAccount.clientEmail,
       private_key: serviceAccount.privateKey,
