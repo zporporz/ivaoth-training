@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { encodeSession } from "../../../../../lib/serverSession";
 
 const IVAO_TOKEN_URL = "https://api.ivao.aero/v2/oauth/token";
 const IVAO_USERINFO_URL = "https://api.ivao.aero/v2/users/me";
@@ -8,10 +9,6 @@ function getRedirectUri(request) {
     process.env.IVAO_REDIRECT_URI ||
     `${request.nextUrl.origin}/api/auth/callback/ivao`
   );
-}
-
-function encodeSession(data) {
-  return Buffer.from(JSON.stringify(data)).toString("base64url");
 }
 
 function cleanName(value) {

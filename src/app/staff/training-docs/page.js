@@ -16,7 +16,7 @@ import {
 import Navbar from "../../../components/Navbar";
 import Card from "../../../components/ui/Card";
 import ProtectedStaffPage from "../../../components/ProtectedStaffPage";
-import { getClientSession } from "../../../lib/authSession";
+import { useClientSession } from "../../../lib/authSession";
 import { db } from "../../../lib/firebase";
 import { canManageDocs } from "../../../lib/permissions";
 
@@ -47,16 +47,12 @@ function youtubeThumbnail(url) {
 }
 
 function DocsManager() {
-  const [session, setSession] = useState(null);
+  const session = useClientSession();
   const [docs, setDocs] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
 
   const canManage = canManageDocs(session);
-
-  useEffect(() => {
-    setSession(getClientSession());
-  }, []);
 
   useEffect(() => {
     if (!canManage) return;

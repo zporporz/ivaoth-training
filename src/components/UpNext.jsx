@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getClientSession } from "../lib/authSession";
+import { useState } from "react";
+import { useClientSession } from "../lib/authSession";
 import Card from "./ui/Card";
 
 function monthLabel(item) {
@@ -89,13 +89,9 @@ function SessionList({ items, canViewDetails, emptyText }) {
 }
 
 export default function UpNext({ upNext, history = [] }) {
-  const [session, setSession] = useState(null);
+  const session = useClientSession();
   const [activeTab, setActiveTab] = useState("upcoming");
   const [activeMonth, setActiveMonth] = useState("ALL");
-
-  useEffect(() => {
-    setSession(getClientSession());
-  }, []);
 
   const canViewDetails = Boolean(session);
   const sourceItems = activeTab === "history" ? history : upNext;

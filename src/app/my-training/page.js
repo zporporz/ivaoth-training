@@ -5,7 +5,7 @@ import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 
 import Navbar from "../../components/Navbar";
 import Card from "../../components/ui/Card";
-import { getClientSession } from "../../lib/authSession";
+import { useClientSession } from "../../lib/authSession";
 import { db } from "../../lib/firebase";
 
 function sessionToDate(session) {
@@ -77,13 +77,11 @@ function TrainingSessionCard({ item, mode }) {
 }
 
 export default function MyTrainingPage() {
-  const [session, setSession] = useState(null);
+  const session = useClientSession();
   const [allSessions, setAllSessions] = useState([]);
   const [activeTab, setActiveTab] = useState("upcoming");
 
   useEffect(() => {
-    setSession(getClientSession());
-
     const q = query(
       collection(db, "trainingSessions"),
       orderBy("date", "asc")

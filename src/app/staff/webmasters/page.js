@@ -15,7 +15,7 @@ import {
 import ProtectedStaffPage from "../../../components/ProtectedStaffPage";
 import Navbar from "../../../components/Navbar";
 import Card from "../../../components/ui/Card";
-import { getClientSession } from "../../../lib/authSession";
+import { useClientSession } from "../../../lib/authSession";
 import { db } from "../../../lib/firebase";
 import { CORE_WEBMASTER_VID, isCoreWebmasterVid } from "../../../lib/useWebmasterAccess";
 
@@ -26,15 +26,11 @@ const emptyForm = {
 };
 
 function WebmasterManager() {
-  const [session, setSession] = useState(null);
+  const session = useClientSession();
   const [webmasters, setWebmasters] = useState([]);
   const [form, setForm] = useState(emptyForm);
 
   const isCoreOwner = isCoreWebmasterVid(session?.vid);
-
-  useEffect(() => {
-    setSession(getClientSession());
-  }, []);
 
   useEffect(() => {
     if (!isCoreOwner) return;
