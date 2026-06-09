@@ -1,22 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  collection,
-  deleteDoc,
-  doc,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  setDoc,
-} from "firebase/firestore";
 
+import { adminDataRequest } from "../../../lib/adminDataClient";
 import ProtectedStaffPage from "../../../components/ProtectedStaffPage";
 import Navbar from "../../../components/Navbar";
 import Card from "../../../components/ui/Card";
 import { useClientSession } from "../../../lib/authSession";
-import { db } from "../../../lib/firebase";
 import { CORE_WEBMASTER_VID, isCoreWebmasterVid } from "../../../lib/useWebmasterAccess";
 
 const emptyForm = {
@@ -25,6 +15,25 @@ const emptyForm = {
   note: "",
 };
 
+function withCoreWebmaster(list) {
+  const hasCoreOwner = list.some(
+    (item) => String(item.vid || item.firestoreId) === CORE_WEBMASTER_VID,
+  );
+  if (hasCoreOwner) return list;
+
+  return [
+    {
+      firestoreId: CORE_WEBMASTER_VID,
+      vid: CORE_WEBMASTER_VID,
+      name: "Ecgkasit Bunyakhachai",
+      note: "Core webmaster",
+      active: true,
+      protected: true,
+    },
+    ...list,
+  ];
+}
+
 function WebmasterManager() {
   const session = useClientSession();
   const [webmasters, setWebmasters] = useState([]);
@@ -32,34 +41,20 @@ function WebmasterManager() {
 
   const isCoreOwner = isCoreWebmasterVid(session?.vid);
 
+  async function loadWebmasters(signal) {
+    const data = await adminDataRequest("/webmasters", { signal });
+    setWebmasters(withCoreWebmaster(data.webmasters || []));
+  }
+
   useEffect(() => {
     if (!isCoreOwner) return;
-
-    const q = query(collection(db, "webmasters"), orderBy("vid", "asc"));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((item) => ({ firestoreId: item.id, ...item.data() }));
-
-      const hasCoreOwner = data.some((item) => String(item.vid || item.firestoreId) === CORE_WEBMASTER_VID);
-
-      setWebmasters(
-        hasCoreOwner
-          ? data
-          : [
-              {
-                firestoreId: CORE_WEBMASTER_VID,
-                vid: CORE_WEBMASTER_VID,
-                name: "Ecgkasit Bunyakhachai",
-                note: "Core webmaster",
-                active: true,
-                protected: true,
-              },
-              ...data,
-            ]
-      );
-    });
-
-    return () => unsubscribe();
+    const controller = new AbortController();
+    adminDataRequest("/webmasters", { signal: controller.signal })
+      .then((data) => setWebmasters(withCoreWebmaster(data.webmasters || [])))
+      .catch((error) => {
+        if (error.name !== "AbortError") console.error(error);
+      });
+    return () => controller.abort();
   }, [isCoreOwner]);
 
   function updateField(field, value) {
@@ -76,17 +71,17 @@ function WebmasterManager() {
       return;
     }
 
-    await setDoc(doc(db, "webmasters", cleanVid), {
-      vid: cleanVid,
-      name: form.name.trim(),
-      note: form.note.trim(),
-      active: true,
-      addedBy: String(session?.vid || ""),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+    await adminDataRequest("/webmasters", {
+      method: "POST",
+      body: JSON.stringify({
+        vid: cleanVid,
+        name: form.name.trim(),
+        note: form.note.trim(),
+      }),
     });
 
     setForm(emptyForm);
+    await loadWebmasters();
   }
 
   async function handleDeleteWebmaster(item) {
@@ -99,7 +94,8 @@ function WebmasterManager() {
       return;
     }
 
-    await deleteDoc(doc(db, "webmasters", vid));
+    await adminDataRequest(`/webmasters/${vid}`, { method: "DELETE" });
+    await loadWebmasters();
   }
 
   if (!isCoreOwner) {
