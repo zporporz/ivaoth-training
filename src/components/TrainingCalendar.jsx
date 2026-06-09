@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Card from "./ui/Card";
 import SessionDetailModal from "./SessionDetailModal";
 import LoginRequiredModal from "./LoginRequiredModal";
@@ -43,6 +43,26 @@ function cursorFromDateKey(dateKey) {
 
   const [year, month, day] = dateKey.split("-").map(Number);
   return new Date(year, month - 1, day, 12, 0, 0);
+}
+
+function isValidDateKey(dateKey) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey || "")) return false;
+
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const date = new Date(year, month - 1, day, 12, 0, 0);
+
+  return (
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
+  );
+}
+
+function isSameMonth(date, dateKey) {
+  if (!isValidDateKey(dateKey)) return false;
+
+  const [year, month] = dateKey.split("-").map(Number);
+  return date.getFullYear() === year && date.getMonth() === month - 1;
 }
 
 function toDateKey(date) {
@@ -135,22 +155,41 @@ function SessionChip({ session, programs, onClick }) {
 export default function TrainingCalendar({ sessions, programs }) {
   const [cursor, setCursor] = useState(() => getBangkokNowDate());
   const [todayKey, setTodayKey] = useState(() => getBangkokTodayKey());
+  const todayKeyRef = useRef(todayKey);
   const [selectedSession, setSelectedSession] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     let ignore = false;
 
+    function applyTodayKey(nextTodayKey) {
+      if (ignore || !isValidDateKey(nextTodayKey)) return;
+
+      const previousTodayKey = todayKeyRef.current;
+
+      setCursor((previousCursor) => {
+        const isViewingTodayMonth = isSameMonth(
+          previousCursor,
+          previousTodayKey,
+        );
+
+        return isViewingTodayMonth
+          ? cursorFromDateKey(nextTodayKey)
+          : previousCursor;
+      });
+      todayKeyRef.current = nextTodayKey;
+      setTodayKey(nextTodayKey);
+    }
+
     async function syncTodayFromServer() {
       try {
         const response = await fetch("/api/time/today", { cache: "no-store" });
-        const data = await response.json();
+        if (!response.ok) throw new Error("Unable to load the current date");
 
-        if (!ignore && data?.todayKey) {
-          setTodayKey(data.todayKey);
-        }
+        const data = await response.json();
+        applyTodayKey(data?.todayKey);
       } catch {
-        if (!ignore) setTodayKey(getBangkokTodayKey());
+        applyTodayKey(getBangkokTodayKey());
       }
     }
 
@@ -192,13 +231,19 @@ export default function TrainingCalendar({ sessions, programs }) {
   async function goToday() {
     try {
       const response = await fetch("/api/time/today", { cache: "no-store" });
-      const data = await response.json();
-      const nextTodayKey = data?.todayKey || getBangkokTodayKey();
+      if (!response.ok) throw new Error("Unable to load the current date");
 
+      const data = await response.json();
+      const nextTodayKey = isValidDateKey(data?.todayKey)
+        ? data.todayKey
+        : getBangkokTodayKey();
+
+      todayKeyRef.current = nextTodayKey;
       setTodayKey(nextTodayKey);
       setCursor(cursorFromDateKey(nextTodayKey));
     } catch {
       const fallbackTodayKey = getBangkokTodayKey();
+      todayKeyRef.current = fallbackTodayKey;
       setTodayKey(fallbackTodayKey);
       setCursor(cursorFromDateKey(fallbackTodayKey));
     }
@@ -265,6 +310,8 @@ export default function TrainingCalendar({ sessions, programs }) {
             return (
               <div
                 key={item.key}
+                data-date-key={item.key}
+                aria-current={isToday ? "date" : undefined}
                 className={`min-h-[128px] border-b border-r border-[#ececea] p-2 ${
                   isToday ? "bg-[#e3f7ea]" : "bg-white/40"
                 } ${!item.isCurrentMonth ? "opacity-40" : ""}`}
