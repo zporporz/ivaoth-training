@@ -1,14 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import Navbar from "../../components/Navbar";
-import { getClientSession } from "../../lib/authSession";
+import { useClientSession } from "../../lib/authSession";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { useEffect, useState } from "react";
 
 export default function TrainingDocsPage() {
   const [docs, setDocs] = useState([]);
-  const session = getClientSession();
+  const session = useClientSession();
 
   useEffect(() => {
     if (!session) return;
@@ -81,9 +82,22 @@ export default function TrainingDocsPage() {
             >
               <div className="relative h-[230px] overflow-hidden bg-[#f3f3f1]">
                 {doc.thumbnailUrl ? (
-                  <img src={doc.thumbnailUrl} alt={doc.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                  <Image
+                    src={doc.thumbnailUrl}
+                    alt={doc.title}
+                    fill
+                    unoptimized
+                    sizes="(min-width: 1024px) 33vw, 100vw"
+                    className="object-cover transition duration-500 group-hover:scale-105"
+                  />
                 ) : (
-                  <img src="/training-docs/default-cover.png" alt="Training Docs" className="h-full w-full object-cover" />
+                  <Image
+                    src="/training-docs/default-cover.png"
+                    alt="Training Docs"
+                    fill
+                    sizes="(min-width: 1024px) 33vw, 100vw"
+                    className="object-cover"
+                  />
                 )}
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />

@@ -47,7 +47,11 @@ export default function StaffSessionBell({ session }) {
 
   useEffect(() => {
     if (!enabled || typeof window === "undefined") return;
-    setLastSeen(Number(localStorage.getItem(storageKey(vid)) || 0));
+    const timeout = window.setTimeout(() => {
+      setLastSeen(Number(localStorage.getItem(storageKey(vid)) || 0));
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
   }, [enabled, vid]);
 
   useEffect(() => {
@@ -84,7 +88,8 @@ export default function StaffSessionBell({ session }) {
     if (!enabled || typeof window === "undefined") return;
     if (!lastSeen && latestActivity) {
       localStorage.setItem(storageKey(vid), String(latestActivity));
-      setLastSeen(latestActivity);
+      const timeout = window.setTimeout(() => setLastSeen(latestActivity), 0);
+      return () => window.clearTimeout(timeout);
     }
   }, [enabled, latestActivity, lastSeen, vid]);
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { getClientSession } from "../lib/authSession";
+import { useEffect, useState } from "react";
+import { useClientSession } from "../lib/authSession";
 
 const REMINDER_WINDOWS = [
   { id: "30m", label: "30 minutes", minutes: 30, windowMinutes: 30 },
@@ -39,14 +39,18 @@ export default function TrainingReminder({ sessions = [] }) {
   const [dismissed, setDismissed] = useState([]);
   const [doNotShowAgain, setDoNotShowAgain] = useState(false);
 
-  const loginSession = useMemo(() => getClientSession(), []);
+  const loginSession = useClientSession();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const savedDismissed = Object.keys(localStorage).filter((key) =>
-      key.startsWith("training-reminder-dismissed-")
-    );
-    setDismissed(savedDismissed);
+    const timeout = window.setTimeout(() => {
+      const savedDismissed = Object.keys(localStorage).filter((key) =>
+        key.startsWith("training-reminder-dismissed-")
+      );
+      setDismissed(savedDismissed);
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
   }, []);
 
   useEffect(() => {

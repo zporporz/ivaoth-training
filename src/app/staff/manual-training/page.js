@@ -6,7 +6,7 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import ProtectedStaffPage from "../../../components/ProtectedStaffPage";
 import Navbar from "../../../components/Navbar";
 import Card from "../../../components/ui/Card";
-import { getClientSession } from "../../../lib/authSession";
+import { useClientSession } from "../../../lib/authSession";
 import { db } from "../../../lib/firebase";
 import { CORE_WEBMASTER_VID, isCoreWebmasterVid } from "../../../lib/useWebmasterAccess";
 import programs from "../../../data/programs";
@@ -39,16 +39,12 @@ function pickerValueToZulu(value) {
 }
 
 function ManualTrainingManager() {
-  const [session, setSession] = useState(null);
+  const session = useClientSession();
   const [form, setForm] = useState(emptyForm);
   const [traineeLookupStatus, setTraineeLookupStatus] = useState("idle");
   const [trainerLookupStatus, setTrainerLookupStatus] = useState("idle");
 
   const isCoreOwner = isCoreWebmasterVid(session?.vid);
-
-  useEffect(() => {
-    setSession(getClientSession());
-  }, []);
 
   function updateForm(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -58,8 +54,8 @@ function ManualTrainingManager() {
     const traineeVid = form.traineeVid.trim();
 
     if (traineeVid.length < 5) {
-      setTraineeLookupStatus("idle");
-      return;
+      const timeout = setTimeout(() => setTraineeLookupStatus("idle"), 0);
+      return () => clearTimeout(timeout);
     }
 
     const controller = new AbortController();
@@ -94,8 +90,8 @@ function ManualTrainingManager() {
     const trainerVid = form.trainerVid.trim();
 
     if (trainerVid.length < 5) {
-      setTrainerLookupStatus("idle");
-      return;
+      const timeout = setTimeout(() => setTrainerLookupStatus("idle"), 0);
+      return () => clearTimeout(timeout);
     }
 
     const controller = new AbortController();

@@ -13,7 +13,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 
-import { getClientSession } from "../lib/authSession";
+import { useClientSession } from "../lib/authSession";
 import { notifyDiscordTraining } from "../lib/discordTrainingNotify";
 import { db } from "../lib/firebase";
 import {
@@ -60,7 +60,7 @@ export default function useTrainingSessions() {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(emptyTrainingSessionForm);
-  const [loginSession, setLoginSession] = useState(null);
+  const loginSession = useClientSession();
   const [traineeLookupStatus, setTraineeLookupStatus] = useState("idle");
 
   function updateForm(field, value) {
@@ -68,9 +68,6 @@ export default function useTrainingSessions() {
   }
 
   useEffect(() => {
-    setLoginSession(getClientSession());
-    setLoading(true);
-
     const q = query(collection(db, "trainingSessions"), orderBy("date", "asc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setSessions(
@@ -89,8 +86,8 @@ export default function useTrainingSessions() {
     const traineeVid = form.traineeVid.trim();
 
     if (traineeVid.length < 5) {
-      setTraineeLookupStatus("idle");
-      return;
+      const timeout = setTimeout(() => setTraineeLookupStatus("idle"), 0);
+      return () => clearTimeout(timeout);
     }
 
     const controller = new AbortController();

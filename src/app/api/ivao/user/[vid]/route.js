@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getRequestSession } from "../../../../../lib/serverSession";
 
 const IVAO_TOKEN_URL = "https://api.ivao.aero/v2/oauth/token";
 const IVAO_USER_URL = "https://api.ivao.aero/v2/users";
@@ -118,7 +119,15 @@ function normalizeUserPayload(payload) {
   return payload.data || payload.user || payload;
 }
 
-export async function GET(_request, { params }) {
+export async function GET(request, { params }) {
+  const loginSession = getRequestSession(request);
+  if (!loginSession?.hasTrainingAccess) {
+    return NextResponse.json(
+      { error: "Training staff access required" },
+      { status: 403 },
+    );
+  }
+
   const { vid } = await params;
   const cleanVid = String(vid || "").replace(/\D/g, "");
 

@@ -11,7 +11,7 @@ import UpNext from "../components/UpNext";
 
 import programs from "../data/programs";
 import { db } from "../lib/firebase";
-import { getClientSession } from "../lib/authSession";
+import { useClientSession } from "../lib/authSession";
 import { ArrowUpRight } from "lucide-react";
 
 const monthNames = [
@@ -79,7 +79,7 @@ function buildSessionList(sessions, mode = "upcoming") {
 export default function Home() {
   const [dbSessions, setDbSessions] = useState([]);
   const [activeGroup, setActiveGroup] = useState("ATC");
-  const [session, setSession] = useState(null);
+  const session = useClientSession();
 
   const liveUpNext = buildSessionList(dbSessions, "upcoming");
   const historySessions = buildSessionList(dbSessions, "history");
@@ -94,8 +94,6 @@ const pilotCount = dbSessions.filter((s) => {
 }).length;
 
   useEffect(() => {
-    setSession(getClientSession());
-
     const q = query(collection(db, "trainingSessions"), orderBy("date", "asc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {

@@ -1,25 +1,28 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { getClientSession } from "../lib/authSession";
+import Link from "next/link";
+import { useClientSession } from "../lib/authSession";
 import StaffSessionBell from "./StaffSessionBell";
 import UserBadge from "./UserBadge";
 
 const WEBMASTER_VID = "739898";
 
 export default function Navbar() {
-  const [session, setSession] = useState(null);
+  const session = useClientSession();
   const isWebmaster = String(session?.vid || "") === WEBMASTER_VID;
-
-  useEffect(() => {
-    setSession(getClientSession());
-  }, []);
 
   return (
     <nav className="mx-auto flex max-w-[1480px] items-center justify-between rounded-[28px] border border-[#ececea] bg-white/70 px-6 py-4 shadow-sm backdrop-blur backdrop-saturate-150">
       <div className="flex items-center gap-4">
-        <Image src="/logo.png" alt="IVAO Thailand" width={200} height={100} priority />
+        <Image
+          src="/logo.png"
+          alt="IVAO Thailand"
+          width={200}
+          height={100}
+          priority
+          style={{ height: "auto" }}
+        />
 
         <div className="hidden sm:block">
           <div className="text-lg font-black leading-tight">Training Department</div>
@@ -29,9 +32,9 @@ export default function Navbar() {
 
       {session && (
         <div className="hidden items-center gap-2 lg:flex">
-          <a href="/" className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]">
+          <Link href="/" className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]">
             Portal
-          </a>
+          </Link>
 
           <a href="/my-training" className="rounded-full px-4 py-2 text-base font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1]">
             My Training

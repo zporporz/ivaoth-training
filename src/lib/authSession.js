@@ -1,6 +1,11 @@
+import { useMemo, useSyncExternalStore } from "react";
+
 export function decodeSession(value) {
   try {
-    return JSON.parse(atob(value.replace(/-/g, "+").replace(/_/g, "/")));
+    const [payload, signature] = value.split(".");
+    if (!payload || !signature) return null;
+
+    return JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
   } catch {
     return null;
   }
@@ -22,4 +27,26 @@ export function getCookie(name) {
 export function getClientSession() {
   const cookie = getCookie("ivao_session");
   return cookie ? decodeSession(cookie) : null;
+}
+
+function subscribeSession() {
+  return () => {};
+}
+
+function getSessionSnapshot() {
+  return getCookie("ivao_session") || "";
+}
+
+export function useClientSession() {
+  const cookie = useSyncExternalStore(
+    subscribeSession,
+    getSessionSnapshot,
+    () => "",
+  );
+
+  return useMemo(() => (cookie ? decodeSession(cookie) : null), [cookie]);
+}
+
+export function useClientReady() {
+  return useSyncExternalStore(subscribeSession, () => true, () => false);
 }

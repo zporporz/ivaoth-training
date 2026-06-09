@@ -16,7 +16,7 @@ import {
 import ProtectedStaffPage from "../../../components/ProtectedStaffPage";
 import Navbar from "../../../components/Navbar";
 import Card from "../../../components/ui/Card";
-import { getClientSession } from "../../../lib/authSession";
+import { useClientSession } from "../../../lib/authSession";
 import { db } from "../../../lib/firebase";
 
 const WEBMASTER_VID = "739898";
@@ -47,7 +47,7 @@ function sortTrainingStaff(a, b) {
 function TrainingStaffManager() {
   const [staffList, setStaffList] = useState([]);
   const [editingId, setEditingId] = useState(null);
-  const [session, setSession] = useState(null);
+  const session = useClientSession();
   const [form, setForm] = useState({
     ...emptyForm,
     order: "0",
@@ -59,10 +59,6 @@ function TrainingStaffManager() {
   });
 
   const isWebmaster = String(session?.vid || "") === WEBMASTER_VID;
-
-  useEffect(() => {
-    setSession(getClientSession());
-  }, []);
 
   useEffect(() => {
     if (!isWebmaster) return;

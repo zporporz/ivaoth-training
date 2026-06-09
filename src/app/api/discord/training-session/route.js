@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getRequestSession } from "../../../../lib/serverSession";
 
 const TRAINING_PORTAL_URL = "https://ivaoth-training.vercel.app/staff";
 
@@ -36,6 +37,14 @@ function buildEmbed(action, session) {
 }
 
 export async function POST(request) {
+  const loginSession = getRequestSession(request);
+  if (!loginSession?.hasTrainingAccess) {
+    return NextResponse.json(
+      { ok: false, error: "Training staff access required" },
+      { status: 403 },
+    );
+  }
+
   const webhookUrl = process.env.DISCORD_TRAINING_WEBHOOK_URL;
 
   if (!webhookUrl) {

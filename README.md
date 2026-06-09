@@ -167,8 +167,12 @@ Fields:
 ```env
 IVAO_CLIENT_ID=
 IVAO_CLIENT_SECRET=
+SESSION_SECRET=
 NEXT_PUBLIC_BASE_URL=
 ```
+
+`SESSION_SECRET` should be a long random value. If omitted, the app falls back
+to `IVAO_CLIENT_SECRET` for signing session cookies.
 
 ## Firebase
 
