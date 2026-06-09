@@ -2,21 +2,17 @@
 
 import { useEffect, useState } from "react";
 import {
-  addDoc,
   collection,
-  deleteDoc,
-  doc,
   onSnapshot,
   orderBy,
   query,
-  serverTimestamp,
-  updateDoc,
 } from "firebase/firestore";
 
 import ProtectedStaffPage from "../../../components/ProtectedStaffPage";
 import Navbar from "../../../components/Navbar";
 import Card from "../../../components/ui/Card";
 import { useClientSession } from "../../../lib/authSession";
+import { adminDataRequest } from "../../../lib/adminDataClient";
 import { db } from "../../../lib/firebase";
 
 const WEBMASTER_VID = "739898";
@@ -94,15 +90,17 @@ function TrainingStaffManager() {
       avatarUrl: form.avatarUrl.trim(),
       bio: form.bio.trim(),
       active: form.active,
-      updatedAt: serverTimestamp(),
     };
 
     if (editingId) {
-      await updateDoc(doc(db, "trainingStaff", editingId), payload);
+      await adminDataRequest(`/staff/${editingId}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
     } else {
-      await addDoc(collection(db, "trainingStaff"), {
-        ...payload,
-        createdAt: serverTimestamp(),
+      await adminDataRequest("/staff", {
+        method: "POST",
+        body: JSON.stringify(payload),
       });
     }
 
@@ -112,7 +110,7 @@ function TrainingStaffManager() {
 
   async function handleDelete(id) {
     if (!isWebmaster) return;
-    await deleteDoc(doc(db, "trainingStaff", id));
+    await adminDataRequest(`/staff/${id}`, { method: "DELETE" });
   }
 
   function handleEdit(staff) {

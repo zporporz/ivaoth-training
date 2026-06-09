@@ -185,6 +185,24 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
 ```
 
+Server-side Firestore writes use the official Firestore server SDK. Add these variables to
+Vercel for Production, Preview, and Development:
+
+```env
+FIREBASE_PROJECT_ID=
+FIREBASE_CLIENT_EMAIL=
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+```
+
+The values come from Firebase Console -> Project settings -> Service accounts
+-> Generate new private key. Never commit the downloaded JSON key. As an
+alternative, the complete one-line JSON can be stored in
+`FIREBASE_SERVICE_ACCOUNT_JSON`.
+
+After the server variables are deployed, publish `firestore.rules`. Public
+collections remain readable by the web client for realtime updates, while all
+writes go through authenticated Next.js API routes.
+
 ---
 
 # Local Development

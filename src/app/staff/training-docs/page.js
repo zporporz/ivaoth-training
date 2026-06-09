@@ -2,21 +2,17 @@
 
 import { useEffect, useState } from "react";
 import {
-  addDoc,
   collection,
-  deleteDoc,
-  doc,
   onSnapshot,
   orderBy,
   query,
-  serverTimestamp,
-  updateDoc,
 } from "firebase/firestore";
 
 import Navbar from "../../../components/Navbar";
 import Card from "../../../components/ui/Card";
 import ProtectedStaffPage from "../../../components/ProtectedStaffPage";
 import { useClientSession } from "../../../lib/authSession";
+import { adminDataRequest } from "../../../lib/adminDataClient";
 import { db } from "../../../lib/firebase";
 import { canManageDocs } from "../../../lib/permissions";
 
@@ -88,13 +84,18 @@ function DocsManager() {
       thumbnailUrl: thumbnail,
       order: Number(form.order || 9999),
       active: form.active,
-      updatedAt: serverTimestamp(),
     };
 
     if (editingId) {
-      await updateDoc(doc(db, "trainingDocs", editingId), payload);
+      await adminDataRequest(`/docs/${editingId}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
     } else {
-      await addDoc(collection(db, "trainingDocs"), { ...payload, createdAt: serverTimestamp() });
+      await adminDataRequest("/docs", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
     }
 
     setEditingId(null);
@@ -103,7 +104,7 @@ function DocsManager() {
 
   async function handleDelete(id) {
     if (!canManage) return;
-    await deleteDoc(doc(db, "trainingDocs", id));
+    await adminDataRequest(`/docs/${id}`, { method: "DELETE" });
   }
 
   function handleEdit(item) {

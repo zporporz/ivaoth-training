@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
+import { adminDataRequest } from "../../../lib/adminDataClient";
 import ProtectedStaffPage from "../../../components/ProtectedStaffPage";
 import Navbar from "../../../components/Navbar";
 import Card from "../../../components/ui/Card";
 import { useClientSession } from "../../../lib/authSession";
-import { db } from "../../../lib/firebase";
 import { CORE_WEBMASTER_VID, isCoreWebmasterVid } from "../../../lib/useWebmasterAccess";
 import programs from "../../../data/programs";
 
@@ -139,26 +138,23 @@ function ManualTrainingManager() {
       return;
     }
 
-    const isExam = form.type.includes("Exam");
-    const isOfficial = form.type.includes("Official");
-
-    await addDoc(collection(db, "trainingSessions"), {
-      date: form.date,
-      time: form.time,
-      program: form.program,
-      type: form.type,
-      topic: form.topic.trim(),
-      remarks: form.remarks.trim(),
-      position: form.position.toUpperCase(),
-      traineeName: form.traineeName.trim(),
-      traineeVid: form.traineeVid.trim(),
-      trainerName: form.trainerName.trim(),
-      trainerVid: form.trainerVid.trim(),
-      trainerStaffPosition: form.trainerStaffPosition.trim(),
-      status: isExam ? "Exam" : isOfficial ? "Official" : "Scheduled",
-      createdByWebmaster: String(session?.vid || ""),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+    await adminDataRequest("/sessions", {
+      method: "POST",
+      body: JSON.stringify({
+        manual: true,
+        date: form.date,
+        time: form.time,
+        program: form.program,
+        type: form.type,
+        topic: form.topic.trim(),
+        remarks: form.remarks.trim(),
+        position: form.position.toUpperCase(),
+        traineeName: form.traineeName.trim(),
+        traineeVid: form.traineeVid.trim(),
+        trainerName: form.trainerName.trim(),
+        trainerVid: form.trainerVid.trim(),
+        trainerStaffPosition: form.trainerStaffPosition.trim(),
+      }),
     });
 
     setForm(emptyForm);

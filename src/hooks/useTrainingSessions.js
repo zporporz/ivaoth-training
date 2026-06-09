@@ -2,17 +2,13 @@
 
 import { useEffect, useState } from "react";
 import {
-  addDoc,
   collection,
-  deleteDoc,
-  doc,
   onSnapshot,
   orderBy,
   query,
-  serverTimestamp,
-  updateDoc,
 } from "firebase/firestore";
 
+import { adminDataRequest } from "../lib/adminDataClient";
 import { useClientSession } from "../lib/authSession";
 import { notifyDiscordTraining } from "../lib/discordTrainingNotify";
 import { db } from "../lib/firebase";
@@ -163,19 +159,21 @@ export default function useTrainingSessions() {
       trainerStaffPosition:
         editingSession?.trainerStaffPosition || getTrainerPosition(loginSession),
       status: isExam ? "Exam" : isOfficial ? "Official" : "Scheduled",
-      updatedAt: serverTimestamp(),
     };
 
     if (editingId) {
-      await updateDoc(doc(db, "trainingSessions", editingId), sessionData);
-      await notifyDiscordTraining("modified", sessionData);
+      const result = await adminDataRequest(`/sessions/${editingId}`, {
+        method: "PATCH",
+        body: JSON.stringify(sessionData),
+      });
+      await notifyDiscordTraining("modified", result.session || sessionData);
       setEditingId(null);
     } else {
-      await addDoc(collection(db, "trainingSessions"), {
-        ...sessionData,
-        createdAt: serverTimestamp(),
+      const result = await adminDataRequest("/sessions", {
+        method: "POST",
+        body: JSON.stringify(sessionData),
       });
-      await notifyDiscordTraining("new", sessionData);
+      await notifyDiscordTraining("new", result.session || sessionData);
     }
 
     setForm(emptyTrainingSessionForm);
@@ -188,11 +186,9 @@ export default function useTrainingSessions() {
       return;
     }
 
-    await updateDoc(doc(db, "trainingSessions", session.firestoreId), {
-      trainerName: getTrainerName(loginSession),
-      trainerVid: loginSession.vid,
-      trainerStaffPosition: getTrainerPosition(loginSession),
-      updatedAt: serverTimestamp(),
+    await adminDataRequest(`/sessions/${session.firestoreId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ action: "claim" }),
     });
   }
 
@@ -202,7 +198,9 @@ export default function useTrainingSessions() {
       return;
     }
 
-    await deleteDoc(doc(db, "trainingSessions", session.firestoreId));
+    await adminDataRequest(`/sessions/${session.firestoreId}`, {
+      method: "DELETE",
+    });
   }
 
   function editSession(session) {

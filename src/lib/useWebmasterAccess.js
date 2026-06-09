@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "./firebase";
 
 export const CORE_WEBMASTER_VID = "739898";
 
@@ -22,21 +20,25 @@ export function useWebmasterAccess(session) {
   useEffect(() => {
     if (!vid || isCoreOwner) return;
 
-    const unsubscribe = onSnapshot(
-      doc(db, "webmasters", vid),
-      (snapshot) => {
+    const controller = new AbortController();
+    fetch("/api/admin-data/webmaster-access", { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Unable to check webmaster access");
+        return response.json();
+      })
+      .then((data) => {
         setRemoteAccess({
           vid,
-          isWebmaster: snapshot.exists() && snapshot.data()?.active !== false,
+          isWebmaster: data.isWebmaster === true,
           resolved: true,
         });
-      },
-      () => {
+      })
+      .catch((error) => {
+        if (error.name === "AbortError") return;
         setRemoteAccess({ vid, isWebmaster: false, resolved: true });
-      }
-    );
+      });
 
-    return () => unsubscribe();
+    return () => controller.abort();
   }, [isCoreOwner, vid]);
 
   const hasResolvedRemoteAccess = remoteAccess.vid === vid && remoteAccess.resolved;
