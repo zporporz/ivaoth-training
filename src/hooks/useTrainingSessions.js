@@ -17,6 +17,7 @@ import {
   canDeleteSession,
   canEditSession,
 } from "../lib/permissions";
+import { isValidZuluTime } from "../lib/staffSessions";
 
 export const emptyTrainingSessionForm = {
   date: "",
@@ -120,7 +121,7 @@ export default function useTrainingSessions() {
   async function publishSession() {
     if (
       !form.date ||
-      !form.time ||
+      !isValidZuluTime(form.time) ||
       !form.position ||
       !form.traineeName ||
       !form.traineeVid ||
