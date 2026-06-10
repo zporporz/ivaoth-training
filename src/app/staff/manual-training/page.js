@@ -206,8 +206,8 @@ function ManualTrainingManager() {
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
-                maxLength={4}
-                placeholder="HHMM"
+                maxLength={5}
+                placeholder="HH:MM"
                 value={timeToNumericInput(form.time)}
                 onChange={(e) => updateForm("time", numericInputToZulu(e.target.value))}
                 className="w-full cursor-pointer rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 pr-16 font-bold outline-none"
