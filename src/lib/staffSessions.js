@@ -4,12 +4,19 @@ const monthFormatter = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
 });
 
-export function timeToNumericInput(value) {
+function timeDigits(value) {
   return String(value || "").replace(/\D/g, "").slice(0, 4);
 }
 
+export function timeToNumericInput(value) {
+  const digits = timeDigits(value);
+  return digits.length > 2
+    ? `${digits.slice(0, 2)}:${digits.slice(2)}`
+    : digits;
+}
+
 export function numericInputToZulu(value) {
-  const digits = timeToNumericInput(value);
+  const digits = timeDigits(value);
   return digits ? `${digits}Z` : "";
 }
 
