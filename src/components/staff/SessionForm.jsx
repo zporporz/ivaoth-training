@@ -1,5 +1,5 @@
 import Card from "../ui/Card";
-import { pickerValueToZulu, timeToPickerValue } from "../../lib/staffSessions";
+import { numericInputToZulu, timeToNumericInput } from "../../lib/staffSessions";
 import programs from "../../data/programs";
 
 export default function SessionForm({
@@ -43,10 +43,13 @@ export default function SessionForm({
 
         <div className="relative">
           <input
-            type="time"
-            step="300"
-            value={timeToPickerValue(form.time)}
-            onChange={(event) => onChange("time", pickerValueToZulu(event.target.value))}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={4}
+            placeholder="HHMM"
+            value={timeToNumericInput(form.time)}
+            onChange={(event) => onChange("time", numericInputToZulu(event.target.value))}
             className="w-full cursor-pointer rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 pr-16 font-bold outline-none"
           />
           <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-sm font-black text-[#8b8a84]">

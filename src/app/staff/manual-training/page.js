@@ -7,6 +7,11 @@ import ProtectedStaffPage from "../../../components/ProtectedStaffPage";
 import Navbar from "../../../components/Navbar";
 import Card from "../../../components/ui/Card";
 import { useClientSession } from "../../../lib/authSession";
+import {
+  isValidZuluTime,
+  numericInputToZulu,
+  timeToNumericInput,
+} from "../../../lib/staffSessions";
 import { CORE_WEBMASTER_VID, isCoreWebmasterVid } from "../../../lib/useWebmasterAccess";
 import programs from "../../../data/programs";
 
@@ -24,18 +29,6 @@ const emptyForm = {
   topic: "",
   remarks: "",
 };
-
-function timeToPickerValue(value) {
-  const match = String(value || "").match(/^(\d{2})(\d{2})Z?$/i);
-  if (!match) return "";
-  return `${match[1]}:${match[2]}`;
-}
-
-function pickerValueToZulu(value) {
-  if (!value) return "";
-  const [hour = "00", minute = "00"] = value.split(":");
-  return `${hour.padStart(2, "0")}${minute.padStart(2, "0")}Z`;
-}
 
 function ManualTrainingManager() {
   const session = useClientSession();
@@ -126,7 +119,7 @@ function ManualTrainingManager() {
 
     if (
       !form.date ||
-      !form.time ||
+      !isValidZuluTime(form.time) ||
       !form.position ||
       !form.traineeName ||
       !form.traineeVid ||
@@ -209,7 +202,16 @@ function ManualTrainingManager() {
             <input type="date" value={form.date} onChange={(e) => updateForm("date", e.target.value)} className="w-full cursor-pointer rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none" />
 
             <div className="relative">
-              <input type="time" step="300" value={timeToPickerValue(form.time)} onChange={(e) => updateForm("time", pickerValueToZulu(e.target.value))} className="w-full cursor-pointer rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 pr-16 font-bold outline-none" />
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={4}
+                placeholder="HHMM"
+                value={timeToNumericInput(form.time)}
+                onChange={(e) => updateForm("time", numericInputToZulu(e.target.value))}
+                className="w-full cursor-pointer rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 pr-16 font-bold outline-none"
+              />
               <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-sm font-black text-[#8b8a84]">Z</span>
             </div>
 

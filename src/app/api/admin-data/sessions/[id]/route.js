@@ -73,7 +73,12 @@ export async function PATCH(request, { params }) {
           : "Scheduled",
     };
 
-    if (!update.date || !update.time || !update.position || !update.topic) {
+    if (
+      !update.date ||
+      !/^([01]\d|2[0-3])[0-5]\dZ$/.test(update.time) ||
+      !update.position ||
+      !update.topic
+    ) {
       return errorResponse("Missing required training session fields");
     }
 

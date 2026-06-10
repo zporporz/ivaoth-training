@@ -35,7 +35,7 @@ function sessionPayload(body) {
 function hasRequiredFields(data) {
   return Boolean(
     data.date &&
-      data.time &&
+      /^([01]\d|2[0-3])[0-5]\dZ$/.test(data.time) &&
       data.position &&
       data.traineeName &&
       data.traineeVid &&

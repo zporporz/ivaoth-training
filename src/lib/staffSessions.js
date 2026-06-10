@@ -4,16 +4,20 @@ const monthFormatter = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
 });
 
-export function timeToPickerValue(value) {
-  const match = String(value || "").match(/^(\d{2})(\d{2})Z?$/i);
-  return match ? `${match[1]}:${match[2]}` : "";
+export function timeToNumericInput(value) {
+  return String(value || "").replace(/\D/g, "").slice(0, 4);
 }
 
-export function pickerValueToZulu(value) {
-  if (!value) return "";
+export function numericInputToZulu(value) {
+  const digits = timeToNumericInput(value);
+  return digits ? `${digits}Z` : "";
+}
 
-  const [hour = "00", minute = "00"] = value.split(":");
-  return `${hour.padStart(2, "0")}${minute.padStart(2, "0")}Z`;
+export function isValidZuluTime(value) {
+  const match = String(value || "").match(/^(\d{2})(\d{2})Z$/);
+  if (!match) return false;
+
+  return Number(match[1]) <= 23 && Number(match[2]) <= 59;
 }
 
 export function sessionToDate(session) {
