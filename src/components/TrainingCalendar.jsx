@@ -38,6 +38,15 @@ function getBangkokNowDate() {
   return new Date(Number(year), Number(month) - 1, Number(day), 12, 0, 0);
 }
 
+function millisecondsUntilNextBangkokDay(now = Date.now()) {
+  const dayMs = 24 * 60 * 60 * 1000;
+  const bangkokOffsetMs = 7 * 60 * 60 * 1000;
+  const bangkokNow = now + bangkokOffsetMs;
+  const nextDay = (Math.floor(bangkokNow / dayMs) + 1) * dayMs;
+
+  return nextDay - bangkokNow + 1000;
+}
+
 function cursorFromDateKey(dateKey) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey || "")) return getBangkokNowDate();
 
@@ -161,6 +170,7 @@ export default function TrainingCalendar({ sessions, programs }) {
 
   useEffect(() => {
     let ignore = false;
+    let midnightTimeout;
 
     function applyTodayKey(nextTodayKey) {
       if (ignore || !isValidDateKey(nextTodayKey)) return;
@@ -181,7 +191,13 @@ export default function TrainingCalendar({ sessions, programs }) {
       setTodayKey(nextTodayKey);
     }
 
+    function syncTodayFromClient() {
+      applyTodayKey(getBangkokTodayKey());
+    }
+
     async function syncTodayFromServer() {
+      syncTodayFromClient();
+
       try {
         const response = await fetch("/api/time/today", { cache: "no-store" });
         if (!response.ok) throw new Error("Unable to load the current date");
@@ -193,17 +209,37 @@ export default function TrainingCalendar({ sessions, programs }) {
       }
     }
 
-    syncTodayFromServer();
+    function syncWhenVisible() {
+      if (document.visibilityState === "visible") syncTodayFromServer();
+    }
 
-    const interval = window.setInterval(syncTodayFromServer, 60 * 1000);
+    function scheduleMidnightSync() {
+      window.clearTimeout(midnightTimeout);
+      midnightTimeout = window.setTimeout(() => {
+        syncTodayFromServer();
+        scheduleMidnightSync();
+      }, millisecondsUntilNextBangkokDay());
+    }
+
+    syncTodayFromServer();
+    scheduleMidnightSync();
+
+    const interval = window.setInterval(syncTodayFromClient, 30 * 1000);
     window.addEventListener("focus", syncTodayFromServer);
-    document.addEventListener("visibilitychange", syncTodayFromServer);
+    window.addEventListener("pageshow", syncTodayFromServer);
+    window.addEventListener("online", syncTodayFromServer);
+    window.addEventListener("pointerdown", syncTodayFromClient);
+    document.addEventListener("visibilitychange", syncWhenVisible);
 
     return () => {
       ignore = true;
       window.clearInterval(interval);
+      window.clearTimeout(midnightTimeout);
       window.removeEventListener("focus", syncTodayFromServer);
-      document.removeEventListener("visibilitychange", syncTodayFromServer);
+      window.removeEventListener("pageshow", syncTodayFromServer);
+      window.removeEventListener("online", syncTodayFromServer);
+      window.removeEventListener("pointerdown", syncTodayFromClient);
+      document.removeEventListener("visibilitychange", syncWhenVisible);
     };
   }, []);
 
