@@ -13,7 +13,7 @@ export default function Navbar() {
   const isWebmaster = String(session?.vid || "") === WEBMASTER_VID;
 
   return (
-    <nav className="mx-auto grid max-w-[1480px] grid-cols-1 gap-4 rounded-[28px] border border-[#ececea] bg-white/70 px-4 py-4 shadow-sm backdrop-blur backdrop-saturate-150 sm:px-6 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center">
+    <nav className="mx-auto flex max-w-[1480px] flex-col gap-4 rounded-[28px] border border-[#ececea] bg-white/70 px-4 py-4 shadow-sm backdrop-blur backdrop-saturate-150 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-0">
       <div className="flex w-full items-center justify-between gap-4 lg:w-auto lg:justify-start">
         <div className="flex items-center gap-4">
         <Image
@@ -21,14 +21,14 @@ export default function Navbar() {
           alt="IVAO Thailand"
           width={200}
           height={100}
-          className="w-[150px] lg:w-[160px] 2xl:w-[200px]"
+          className="w-[150px] sm:w-[200px]"
           priority
           style={{ height: "auto" }}
         />
 
         <div className="hidden sm:block">
-          <div className="text-base font-black leading-tight 2xl:text-lg">Training Department</div>
-          <div className="text-sm font-bold text-[#8b8a84] 2xl:text-base">IVAO Thailand Division</div>
+          <div className="text-lg font-black leading-tight">Training Department</div>
+          <div className="text-base font-bold text-[#8b8a84]">IVAO Thailand Division</div>
         </div>
       </div>
 
@@ -40,36 +40,36 @@ export default function Navbar() {
       </div>
 
       {session && (
-        <div className="flex min-w-0 flex-wrap items-center justify-center gap-1.5 lg:flex-nowrap lg:justify-center">
-          <Link href="/" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] xl:px-3 xl:text-sm 2xl:px-4 2xl:text-base">
+        <div className="flex w-full flex-wrap items-center justify-center gap-1.5 lg:w-auto lg:flex-nowrap lg:justify-start lg:gap-2">
+          <Link href="/" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] lg:px-4 lg:text-base">
             Portal
           </Link>
 
-          <a href="/my-training" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] xl:px-3 xl:text-sm 2xl:px-4 2xl:text-base">
+          <a href="/my-training" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] lg:px-4 lg:text-base">
             My Training
           </a>
 
-          <a href="/training-docs" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] xl:px-3 xl:text-sm 2xl:px-4 2xl:text-base">
+          <a href="/training-docs" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] lg:px-4 lg:text-base">
             Training Docs
           </a>
 
-          <a href="/training-list" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] xl:px-3 xl:text-sm 2xl:px-4 2xl:text-base">
+          <a href="/training-list" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] lg:px-4 lg:text-base">
             Trainer List
           </a>
 
           {session.hasTrainingAccess && (
             <>
-              <a href="/staff/training-docs" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] xl:px-3 xl:text-sm 2xl:px-4 2xl:text-base">
+              <a href="/staff/training-docs" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] lg:px-4 lg:text-base">
                 Manage Docs
               </a>
 
               {isWebmaster && (
-                <a href="/staff/training-staff" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] xl:px-3 xl:text-sm 2xl:px-4 2xl:text-base">
+                <a href="/staff/training-staff" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] lg:px-4 lg:text-base">
                   Manage List
                 </a>
               )}
 
-              <a href="/staff" className="shrink-0 rounded-full bg-[#0a2342] px-2.5 py-2 text-[13px] font-extrabold text-white transition hover:bg-[#163b6d] xl:px-3 xl:text-sm 2xl:px-4 2xl:text-base">
+              <a href="/staff" className="shrink-0 rounded-full bg-[#0a2342] px-2.5 py-2 text-[13px] font-extrabold text-white transition hover:bg-[#163b6d] lg:px-4 lg:text-base">
                 Staff Console
               </a>
             </>
@@ -78,7 +78,7 @@ export default function Navbar() {
       )}
 
       {session ? (
-        <div className="flex w-full flex-wrap items-center justify-between gap-3 lg:ml-4 lg:w-auto lg:flex-nowrap lg:justify-start lg:gap-3 2xl:ml-6 2xl:gap-4">
+        <div className="flex w-full flex-wrap items-center justify-between gap-3 lg:ml-6 lg:w-auto lg:flex-nowrap lg:justify-start lg:gap-4">
           {session.hasTrainingAccess && (
             <div className="shrink-0 pl-2">
               <StaffSessionBell session={session} />
