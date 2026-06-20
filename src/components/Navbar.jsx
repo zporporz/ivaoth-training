@@ -13,8 +13,8 @@ export default function Navbar() {
   const isWebmaster = String(session?.vid || "") === WEBMASTER_VID;
 
   return (
-    <nav className="mx-auto flex max-w-[1480px] flex-col gap-4 rounded-[28px] border border-[#ececea] bg-white/70 px-4 py-4 shadow-sm backdrop-blur backdrop-saturate-150 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-0">
-      <div className="flex w-full items-center justify-between gap-4 lg:w-auto lg:justify-start">
+    <nav className="mx-auto flex max-w-[1480px] flex-col gap-4 rounded-[28px] border border-[#ececea] bg-white/70 px-4 py-4 shadow-sm backdrop-blur backdrop-saturate-150 sm:px-6 lg:min-w-max lg:flex-row lg:items-center lg:justify-between lg:gap-0">
+      <div className="flex w-full items-center justify-between gap-4 lg:w-auto lg:shrink-0 lg:justify-start">
         <div className="flex items-center gap-4">
         <Image
           src="/logo.png"
@@ -40,7 +40,7 @@ export default function Navbar() {
       </div>
 
       {session && (
-        <div className="flex w-full flex-wrap items-center justify-center gap-1.5 lg:w-auto lg:flex-nowrap lg:justify-start lg:gap-2">
+        <div className="flex w-full flex-wrap items-center justify-center gap-1.5 lg:w-auto lg:shrink-0 lg:flex-nowrap lg:justify-start lg:gap-2">
           <Link href="/" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] lg:px-4 lg:text-base">
             Portal
           </Link>
@@ -78,9 +78,9 @@ export default function Navbar() {
       )}
 
       {session ? (
-        <div className="flex w-full flex-wrap items-center justify-between gap-3 lg:ml-6 lg:w-auto lg:flex-nowrap lg:justify-start lg:gap-4">
+        <div className="flex w-full flex-wrap items-center justify-between gap-3 lg:ml-10 lg:w-auto lg:shrink-0 lg:flex-nowrap lg:justify-start lg:gap-4">
           {session.hasTrainingAccess && (
-            <div className="shrink-0 pl-2">
+            <div className="shrink-0 pl-2 lg:pl-4">
               <StaffSessionBell session={session} />
             </div>
           )}
