@@ -40,7 +40,7 @@ export default function Navbar() {
       </div>
 
       {session && (
-        <div className="flex min-w-0 flex-wrap items-center justify-center gap-1.5">
+        <div className="flex min-w-0 flex-wrap items-center justify-center gap-1.5 lg:flex-nowrap lg:justify-center">
           <Link href="/" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] xl:px-3 xl:text-sm 2xl:px-4 2xl:text-base">
             Portal
           </Link>
@@ -78,7 +78,7 @@ export default function Navbar() {
       )}
 
       {session ? (
-        <div className="flex w-full flex-wrap items-center justify-between gap-3 lg:ml-6 lg:w-auto lg:flex-nowrap lg:justify-start lg:gap-4">
+        <div className="flex w-full flex-wrap items-center justify-between gap-3 lg:ml-4 lg:w-auto lg:flex-nowrap lg:justify-start lg:gap-3 2xl:ml-6 2xl:gap-4">
           {session.hasTrainingAccess && (
             <div className="shrink-0 pl-2">
               <StaffSessionBell session={session} />
