@@ -54,14 +54,7 @@ function clearExistingBadges() {
 }
 
 function getScheduleRows() {
-  return Array.from(document.querySelectorAll("div")).filter((item) => {
-    const className = String(item.className || "");
-    return (
-      className.includes("grid") &&
-      className.includes("grid-cols-[90px_120px_80px_1fr_220px]") &&
-      item.children?.length >= 5
-    );
-  });
+  return Array.from(document.querySelectorAll("[data-schedule-session-id]"));
 }
 
 function findScheduleRow(sessionId) {
@@ -69,8 +62,8 @@ function findScheduleRow(sessionId) {
   if (!shortId) return null;
 
   return getScheduleRows().find((item) => {
-    const idCell = item.children?.[0];
-    return String(idCell?.textContent || "").trim() === shortId;
+    const rowId = item.getAttribute("data-schedule-session-id");
+    return String(rowId || "").slice(0, 7) === shortId;
   });
 }
 

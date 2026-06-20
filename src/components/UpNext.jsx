@@ -46,15 +46,15 @@ function SessionItem({ s, index, canViewDetails }) {
   return (
     <div
       key={`${s.mode || "session"}-${s.id || index}`}
-      className={`flex gap-4 border-b border-[#ececea] px-6 py-4 ${s.mine ? "border-l-4 border-l-[#16a34a] bg-[#e3f7ea]" : ""} ${s.mode === "history" ? "bg-[#fbfbfa]/60" : ""}`}
+      className={`flex gap-3 border-b border-[#ececea] px-4 py-4 sm:gap-4 sm:px-6 ${s.mine ? "border-l-4 border-l-[#16a34a] bg-[#e3f7ea]" : ""} ${s.mode === "history" ? "bg-[#fbfbfa]/60" : ""}`}
     >
-      <div className="min-w-12">
+      <div className="min-w-10 sm:min-w-12">
         <div className="text-2xl font-black" style={{ color: s.color }}>{s.day}</div>
         <div className="text-xs font-bold italic text-[#8b8a84]">{s.month} {s.time}</div>
       </div>
 
       <div className="min-w-0 flex-1">
-        <div className="mb-1 flex items-center gap-2">
+        <div className="mb-1 flex flex-wrap items-center gap-2">
           <span className="rounded-md border px-2 py-1 text-xs font-black" style={{ color: s.color, borderColor: s.color }}>{s.type}</span>
           <span className="font-black">{s.pos}</span>
           {s.mode === "history" && <span className="ml-auto rounded-full bg-[#ececea] px-2 py-1 text-[10px] font-black uppercase text-[#6d6d68]">completed</span>}
@@ -105,13 +105,13 @@ export default function UpNext({ upNext, history = [] }) {
 
   return (
     <Card className="overflow-hidden p-0">
-      <div className="border-b border-[#ececea] px-6 py-5">
+      <div className="border-b border-[#ececea] px-4 py-5 sm:px-6">
         <div className="flex items-center justify-between gap-4">
           <div className="text-2xl font-black"><span className="font-normal italic text-[#8b8a84]">{activeTab === "history" ? "past/" : "up/"}</span>{activeTab === "history" ? "history" : "next"}</div>
           <div className="text-sm font-bold text-[#8b8a84]"><span className="text-[#ff5a1f]">{activeItems.length}</span> sessions</div>
         </div>
 
-        <div className="mt-4 grid grid-cols-[1fr_1.25fr] gap-3">
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1.25fr]">
           <MonthFilter value={activeMonth} onChange={setActiveMonth} options={options} />
           <div className="grid grid-cols-2 rounded-full border border-[#ececea] bg-[#fbfbfa] p-1">
             <button onClick={() => switchTab("upcoming")} className={`rounded-full px-4 py-2 text-xs font-black transition ${activeTab === "upcoming" ? "bg-black text-white shadow-sm" : "text-[#8b8a84] hover:bg-white"}`}>Upcoming</button>

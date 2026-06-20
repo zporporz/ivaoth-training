@@ -108,13 +108,13 @@ export default function TrainingReminder({ sessions = [] }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-xl rounded-[2rem] border border-white/20 bg-white p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm">
+      <div className="max-h-[calc(100vh-3rem)] w-full max-w-xl overflow-y-auto rounded-[2rem] border border-white/20 bg-white p-5 shadow-2xl animate-in fade-in zoom-in duration-300 sm:p-8">
         <div className="text-sm font-black uppercase tracking-[0.2em] text-[#8b8a84]">
           upcoming training
         </div>
 
-        <h2 className="mt-4 text-4xl font-black tracking-[-0.04em] text-[#0a2342]">
+        <h2 className="mt-4 text-3xl font-black tracking-[-0.04em] text-[#0a2342] sm:text-4xl">
           {activeSession.program} Practical
           <span className="text-[#ff5a1f]">.</span>
         </h2>
@@ -131,7 +131,7 @@ export default function TrainingReminder({ sessions = [] }) {
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-4">
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="rounded-2xl border border-[#ececea] bg-[#fbfbfa] p-4">
             <div className="text-[10px] font-black uppercase tracking-wide text-[#8b8a84]">
               trainee
@@ -157,7 +157,7 @@ export default function TrainingReminder({ sessions = [] }) {
           Hide this {activeReminder.label} reminder for this session
         </label>
 
-        <div className="mt-7 flex items-center justify-end gap-3">
+        <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
           <button
             onClick={() => closeReminder(false)}
             className="rounded-full border border-[#dddbd6] bg-white px-5 py-3 text-sm font-black text-[#4b4b48] transition hover:bg-[#f3f3f1]"

@@ -294,7 +294,7 @@ export default function TrainingCalendar({ sessions, programs }) {
   return (
     <>
       <Card className="overflow-hidden p-0">
-        <div className="flex items-center justify-between border-b border-[#ececea] px-6 py-5">
+        <div className="flex flex-col gap-4 border-b border-[#ececea] px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="text-2xl font-black">
             <span className="font-normal italic text-[#8b8a84]">the/</span>
             schedule
@@ -328,57 +328,61 @@ export default function TrainingCalendar({ sessions, programs }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-7 bg-[#fbfbfa] text-xs font-black italic text-[#8b8a84]">
-          {["sun", "mon", "tue", "wed", "thu", "fri", "sat"].map((d) => (
-            <div key={d} className="border-b border-[#ececea] px-4 py-3">
-              {d}
+        <div className="overflow-x-auto">
+          <div className="min-w-[720px] sm:min-w-0">
+            <div className="grid grid-cols-7 bg-[#fbfbfa] text-xs font-black italic text-[#8b8a84]">
+              {["sun", "mon", "tue", "wed", "thu", "fri", "sat"].map((d) => (
+                <div key={d} className="border-b border-[#ececea] px-4 py-3">
+                  {d}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        <div className="grid grid-cols-7">
-          {grid.map((item) => {
-            const daySessions = sessions.filter((s) => s.date === item.key);
-            const visibleSessions = daySessions.slice(0, 3);
-            const hiddenCount = daySessions.length - visibleSessions.length;
-            const isToday = item.key === todayKey;
+            <div className="grid grid-cols-7">
+              {grid.map((item) => {
+                const daySessions = sessions.filter((s) => s.date === item.key);
+                const visibleSessions = daySessions.slice(0, 3);
+                const hiddenCount = daySessions.length - visibleSessions.length;
+                const isToday = item.key === todayKey;
 
-            return (
-              <div
-                key={item.key}
-                data-date-key={item.key}
-                aria-current={isToday ? "date" : undefined}
-                className={`min-h-[128px] border-b border-r border-[#ececea] p-2 ${
-                  isToday ? "bg-[#e3f7ea]" : "bg-white/40"
-                } ${!item.isCurrentMonth ? "opacity-40" : ""}`}
-              >
-                <div
-                  className={`mb-2 text-lg font-black ${
-                    isToday ? "text-[#16a34a]" : "text-[#b8b6ae]"
-                  }`}
-                >
-                  {item.day}
-                </div>
-
-                <div className="space-y-1 overflow-hidden">
-                  {visibleSessions.map((session) => (
-                    <SessionChip
-                      key={session.id}
-                      session={session}
-                      programs={programs}
-                      onClick={handleSessionClick}
-                    />
-                  ))}
-
-                  {hiddenCount > 0 && (
-                    <div className="rounded-md bg-black px-2 py-1 text-[10px] font-black text-white">
-                      +{hiddenCount} more
+                return (
+                  <div
+                    key={item.key}
+                    data-date-key={item.key}
+                    aria-current={isToday ? "date" : undefined}
+                    className={`min-h-[112px] border-b border-r border-[#ececea] p-2 sm:min-h-[128px] ${
+                      isToday ? "bg-[#e3f7ea]" : "bg-white/40"
+                    } ${!item.isCurrentMonth ? "opacity-40" : ""}`}
+                  >
+                    <div
+                      className={`mb-2 text-lg font-black ${
+                        isToday ? "text-[#16a34a]" : "text-[#b8b6ae]"
+                      }`}
+                    >
+                      {item.day}
                     </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+
+                    <div className="space-y-1 overflow-hidden">
+                      {visibleSessions.map((session) => (
+                        <SessionChip
+                          key={session.id}
+                          session={session}
+                          programs={programs}
+                          onClick={handleSessionClick}
+                        />
+                      ))}
+
+                      {hiddenCount > 0 && (
+                        <div className="rounded-md bg-black px-2 py-1 text-[10px] font-black text-white">
+                          +{hiddenCount} more
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </Card>
 

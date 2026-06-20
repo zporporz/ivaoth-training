@@ -24,19 +24,19 @@ export default function SessionDetailModal({ session, program, onClose }) {
   const trainerVid = session.trainerVid || "-";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6 backdrop-blur-sm">
-      <div className="w-full max-w-3xl overflow-hidden rounded-[2rem] border border-white/60 bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6 backdrop-blur-sm sm:px-6">
+      <div className="max-h-[calc(100vh-3rem)] w-full max-w-3xl overflow-y-auto rounded-[2rem] border border-white/60 bg-white shadow-2xl">
         <div
-          className="border-b border-[#ececea] px-8 py-6"
+          className="border-b border-[#ececea] px-5 py-5 sm:px-8 sm:py-6"
           style={{ borderTop: `8px solid ${accentColor}` }}
         >
-          <div className="flex items-start justify-between gap-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
             <div>
               <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
                 session details
               </div>
 
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-[#242421]">
+              <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] text-[#242421] sm:text-3xl">
                 {session.program} — {session.type}
                 <span style={{ color: accentColor }}>.</span>
               </h2>
@@ -59,19 +59,19 @@ export default function SessionDetailModal({ session, program, onClose }) {
           </div>
         </div>
 
-        <div className="space-y-5 px-8 py-7">
-          <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-5 px-5 py-6 sm:px-8 sm:py-7">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <DetailItem label="Status" value={session.status} />
             <DetailItem label="Program" value={session.program} />
             <DetailItem label="Position" value={session.position} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <DetailItem label="Trainee name" value={traineeName} />
             <DetailItem label="Trainee VID" value={traineeVid} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <DetailItem label="Trainer" value={trainerName} />
             <DetailItem label="Trainer VID" value={trainerVid} />
           </div>

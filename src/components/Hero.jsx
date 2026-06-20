@@ -10,7 +10,7 @@ export default function Hero() {
         IVAO Thailand Training Portal
       </div>
 
-      <h1 className="max-w-3xl text-5xl font-black leading-[0.95] tracking-[-0.04em] text-[#0a0a0a] md:text-7xl">
+      <h1 className="max-w-3xl text-4xl font-black leading-[0.95] tracking-[-0.04em] text-[#0a0a0a] sm:text-5xl md:text-7xl">
         Train smarter.
         <br />
         Control cleaner.

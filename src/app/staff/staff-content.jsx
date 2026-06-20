@@ -38,15 +38,15 @@ export default function OriginalStaffPage() {
     : [];
 
   return (
-    <main className="relative z-10 min-h-screen px-6 py-6">
+    <main className="relative z-10 min-h-screen px-4 py-4 sm:px-6 sm:py-6">
       <Navbar />
 
-      <section className="mx-auto max-w-[1480px] py-10">
+      <section className="mx-auto max-w-[1480px] py-6 sm:py-10">
         <div className="mb-8">
           <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
             ivao-th / training department / staff console
           </div>
-          <h1 className="mt-3 text-5xl font-black tracking-[-0.04em]">
+          <h1 className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-5xl">
             <span className="font-normal italic text-[#4b4b48]">Staff</span> console —
             manage schedule<span className="text-[#ff5a1f]">.</span>
           </h1>

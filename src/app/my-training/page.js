@@ -127,10 +127,10 @@ export default function MyTrainingPage() {
 
   if (!session) {
     return (
-      <main className="min-h-screen bg-[#f7f7f5] px-6 py-6">
+      <main className="min-h-screen bg-[#f7f7f5] px-4 py-4 sm:px-6 sm:py-6">
         <Navbar />
 
-        <section className="mx-auto flex max-w-[1480px] items-center justify-center py-32">
+        <section className="mx-auto flex max-w-[1480px] items-center justify-center py-20 sm:py-32">
           <Card className="max-w-xl text-center">
             <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
               login required
@@ -154,16 +154,16 @@ export default function MyTrainingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f7f7f5] px-6 py-6">
+    <main className="min-h-screen bg-[#f7f7f5] px-4 py-4 sm:px-6 sm:py-6">
       <Navbar />
 
-      <section className="mx-auto max-w-[1480px] py-10">
+      <section className="mx-auto max-w-[1480px] py-6 sm:py-10">
         <div className="mb-8">
           <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
             trainee portal / personal training dashboard
           </div>
 
-          <h1 className="mt-3 text-5xl font-black tracking-[-0.04em]">
+          <h1 className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-5xl">
             My training
             <span className="text-[#ff5a1f]">.</span>
           </h1>
@@ -173,13 +173,13 @@ export default function MyTrainingPage() {
           </div>
         </div>
 
-        <div className="mb-6 grid grid-cols-4 gap-4">
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <div className="text-xs font-black uppercase text-[#8b8a84]">
               total sessions
             </div>
 
-            <div className="mt-3 text-5xl font-black text-[#2563eb]">
+            <div className="mt-3 text-4xl font-black text-[#2563eb] sm:text-5xl">
               {mySessions.length}
             </div>
           </Card>
@@ -189,7 +189,7 @@ export default function MyTrainingPage() {
               upcoming
             </div>
 
-            <div className="mt-3 text-5xl font-black text-[#16a34a]">
+            <div className="mt-3 text-4xl font-black text-[#16a34a] sm:text-5xl">
               {upcomingSessions.length}
             </div>
           </Card>
@@ -199,7 +199,7 @@ export default function MyTrainingPage() {
               completed
             </div>
 
-            <div className="mt-3 text-5xl font-black text-[#4b4b48]">
+            <div className="mt-3 text-4xl font-black text-[#4b4b48] sm:text-5xl">
               {pastSessions.length}
             </div>
           </Card>
