@@ -21,14 +21,14 @@ export default function Navbar() {
           alt="IVAO Thailand"
           width={200}
           height={100}
-          className="w-[150px] sm:w-[200px]"
+          className="w-[150px] lg:w-[160px] 2xl:w-[200px]"
           priority
           style={{ height: "auto" }}
         />
 
         <div className="hidden sm:block">
-          <div className="text-lg font-black leading-tight">Training Department</div>
-          <div className="text-base font-bold text-[#8b8a84]">IVAO Thailand Division</div>
+          <div className="text-base font-black leading-tight 2xl:text-lg">Training Department</div>
+          <div className="text-sm font-bold text-[#8b8a84] 2xl:text-base">IVAO Thailand Division</div>
         </div>
       </div>
 
@@ -40,36 +40,36 @@ export default function Navbar() {
       </div>
 
       {session && (
-        <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 lg:items-center lg:justify-start lg:pb-0 xl:justify-center">
-          <Link href="/" className="shrink-0 rounded-full px-3 py-2 text-sm font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] 2xl:px-4 2xl:text-base">
+        <div className="flex min-w-0 flex-wrap items-center justify-center gap-1.5">
+          <Link href="/" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] xl:px-3 xl:text-sm 2xl:px-4 2xl:text-base">
             Portal
           </Link>
 
-          <a href="/my-training" className="shrink-0 rounded-full px-3 py-2 text-sm font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] 2xl:px-4 2xl:text-base">
+          <a href="/my-training" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] xl:px-3 xl:text-sm 2xl:px-4 2xl:text-base">
             My Training
           </a>
 
-          <a href="/training-docs" className="shrink-0 rounded-full px-3 py-2 text-sm font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] 2xl:px-4 2xl:text-base">
+          <a href="/training-docs" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] xl:px-3 xl:text-sm 2xl:px-4 2xl:text-base">
             Training Docs
           </a>
 
-          <a href="/training-list" className="shrink-0 rounded-full px-3 py-2 text-sm font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] 2xl:px-4 2xl:text-base">
+          <a href="/training-list" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] xl:px-3 xl:text-sm 2xl:px-4 2xl:text-base">
             Trainer List
           </a>
 
           {session.hasTrainingAccess && (
             <>
-              <a href="/staff/training-docs" className="shrink-0 rounded-full px-3 py-2 text-sm font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] 2xl:px-4 2xl:text-base">
+              <a href="/staff/training-docs" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] xl:px-3 xl:text-sm 2xl:px-4 2xl:text-base">
                 Manage Docs
               </a>
 
               {isWebmaster && (
-                <a href="/staff/training-staff" className="shrink-0 rounded-full px-3 py-2 text-sm font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] 2xl:px-4 2xl:text-base">
+                <a href="/staff/training-staff" className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-extrabold text-[#4b4b48] transition hover:bg-[#f3f3f1] xl:px-3 xl:text-sm 2xl:px-4 2xl:text-base">
                   Manage List
                 </a>
               )}
 
-              <a href="/staff" className="shrink-0 rounded-full bg-[#0a2342] px-3 py-2 text-sm font-extrabold text-white transition hover:bg-[#163b6d] 2xl:px-4 2xl:text-base">
+              <a href="/staff" className="shrink-0 rounded-full bg-[#0a2342] px-2.5 py-2 text-[13px] font-extrabold text-white transition hover:bg-[#163b6d] xl:px-3 xl:text-sm 2xl:px-4 2xl:text-base">
                 Staff Console
               </a>
             </>
