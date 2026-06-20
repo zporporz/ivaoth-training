@@ -161,9 +161,58 @@ function SessionChip({ session, programs, onClick }) {
   );
 }
 
+function MobileSessionMark({ session, programs }) {
+  const program = programs.find((p) => p.code === session.program);
+  const color = session.status === "Exam" ? "#dc2626" : program?.color || "#0a0a0a";
+  const time = String(session.time || "").replace(/Z$/i, "Z");
+
+  return (
+    <div
+      className="truncate rounded-sm border-l-[3px] bg-white/80 px-1 py-0.5 text-[9px] font-black leading-none shadow-sm"
+      style={{ borderLeftColor: color, color }}
+      title={`${session.time || ""} ${session.program || ""}`}
+    >
+      {time || "-"}
+    </div>
+  );
+}
+
+function MobileDaySession({ session, programs, onClick }) {
+  const program = programs.find((p) => p.code === session.program);
+  const color = session.status === "Exam" ? "#dc2626" : program?.color || "#0a0a0a";
+
+  return (
+    <button
+      onClick={() => onClick(session)}
+      className="flex w-full items-start gap-3 rounded-2xl border border-[#ececea] bg-[#fbfbfa] p-3 text-left"
+      style={{ borderLeft: `5px solid ${color}` }}
+    >
+      <div className="min-w-12 text-sm font-black" style={{ color }}>
+        {session.time || "-"}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-md bg-white px-2 py-1 text-[10px] font-black" style={{ color }}>
+            {session.program || "-"}
+          </span>
+          <span className="text-xs font-black text-[#242421]">{session.type || "Training"}</span>
+        </div>
+        <div className="mt-1 truncate text-xs font-bold text-[#4b4b48]">
+          {session.position || "-"}
+        </div>
+        <div className="mt-1 line-clamp-2 text-xs font-semibold text-[#8b8a84]">
+          {session.topic || "No topic"}
+        </div>
+      </div>
+    </button>
+  );
+}
+
 export default function TrainingCalendar({ sessions, programs }) {
   const [cursor, setCursor] = useState(() => getBangkokNowDate());
   const [todayKey, setTodayKey] = useState(() => getBangkokTodayKey());
+  const [selectedDateKey, setSelectedDateKey] = useState(() => getBangkokTodayKey());
   const todayKeyRef = useRef(todayKey);
   const [selectedSession, setSelectedSession] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -189,6 +238,9 @@ export default function TrainingCalendar({ sessions, programs }) {
       });
       todayKeyRef.current = nextTodayKey;
       setTodayKey(nextTodayKey);
+      setSelectedDateKey((previousSelectedKey) =>
+        previousSelectedKey === previousTodayKey ? nextTodayKey : previousSelectedKey
+      );
     }
 
     function syncTodayFromClient() {
@@ -286,6 +338,9 @@ export default function TrainingCalendar({ sessions, programs }) {
   }
 
   const monthLabel = `${monthNames[cursor.getMonth()]} ${cursor.getFullYear()}`;
+  const selectedDaySessions = sessions
+    .filter((session) => session.date === selectedDateKey)
+    .sort((a, b) => String(a.time || "").localeCompare(String(b.time || "")));
 
   const selectedProgram = programs.find(
     (p) => p.code === selectedSession?.program
@@ -328,8 +383,101 @@ export default function TrainingCalendar({ sessions, programs }) {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <div className="min-w-[720px] sm:min-w-0">
+        <div className="sm:hidden">
+          <div className="grid grid-cols-7 bg-[#fbfbfa] text-center text-[10px] font-black italic text-[#8b8a84]">
+            {["sun", "mon", "tue", "wed", "thu", "fri", "sat"].map((d) => (
+              <div key={d} className="border-b border-[#ececea] py-2">
+                {d}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7">
+            {grid.map((item) => {
+              const daySessions = sessions.filter((s) => s.date === item.key);
+              const visibleSessions = daySessions.slice(0, 2);
+              const hiddenCount = daySessions.length - visibleSessions.length;
+              const isToday = item.key === todayKey;
+              const isSelected = item.key === selectedDateKey;
+
+              return (
+                <button
+                  key={item.key}
+                  data-date-key={item.key}
+                  aria-current={isToday ? "date" : undefined}
+                  onClick={() => setSelectedDateKey(item.key)}
+                  className={`min-h-[72px] border-b border-r border-[#ececea] p-1 text-left transition ${
+                    isSelected
+                      ? "bg-[#0a2342]/5 outline outline-2 outline-offset-[-2px] outline-[#0a2342]"
+                      : isToday
+                      ? "bg-[#e3f7ea]"
+                      : "bg-white/40"
+                  } ${!item.isCurrentMonth ? "opacity-40" : ""}`}
+                >
+                  <div
+                    className={`mb-1 text-sm font-black ${
+                      isToday ? "text-[#16a34a]" : "text-[#b8b6ae]"
+                    }`}
+                  >
+                    {item.day}
+                  </div>
+
+                  <div className="space-y-0.5 overflow-hidden">
+                    {visibleSessions.map((session) => (
+                      <MobileSessionMark
+                        key={session.id}
+                        session={session}
+                        programs={programs}
+                      />
+                    ))}
+
+                    {hiddenCount > 0 && (
+                      <div className="rounded-sm bg-black px-1 py-0.5 text-center text-[9px] font-black leading-none text-white">
+                        +{hiddenCount}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="border-t border-[#ececea] bg-white px-4 py-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
+                  selected day
+                </div>
+                <div className="text-lg font-black text-[#242421]">
+                  {selectedDateKey}
+                </div>
+              </div>
+              <div className="rounded-full bg-black px-3 py-1 text-xs font-black text-white">
+                {selectedDaySessions.length} sessions
+              </div>
+            </div>
+
+            {selectedDaySessions.length === 0 ? (
+              <div className="rounded-2xl border border-[#ececea] bg-[#fbfbfa] px-4 py-6 text-center text-xs font-bold text-[#8b8a84]">
+                No training sessions on this day.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {selectedDaySessions.map((session) => (
+                  <MobileDaySession
+                    key={session.id}
+                    session={session}
+                    programs={programs}
+                    onClick={handleSessionClick}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="hidden sm:block">
+          <div>
             <div className="grid grid-cols-7 bg-[#fbfbfa] text-xs font-black italic text-[#8b8a84]">
               {["sun", "mon", "tue", "wed", "thu", "fri", "sat"].map((d) => (
                 <div key={d} className="border-b border-[#ececea] px-4 py-3">
