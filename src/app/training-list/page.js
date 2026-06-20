@@ -75,17 +75,17 @@ export default function TrainingListPage() {
   }, [staffList, search]);
 
   return (
-    <main className="relative z-10 min-h-screen px-6 py-6">
+    <main className="relative z-10 min-h-screen px-4 py-4 sm:px-6 sm:py-6">
       <Navbar />
 
-      <section className="mx-auto max-w-[1480px] py-10">
+      <section className="mx-auto max-w-[1480px] py-6 sm:py-10">
         <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
               ivao-th / training department
             </div>
 
-            <h1 className="mt-3 text-5xl font-black tracking-[-0.04em]">
+            <h1 className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-5xl">
               <span className="font-normal italic text-[#4b4b48]">Training</span>{" "}
               list<span className="text-[#ff5a1f]">.</span>
             </h1>
@@ -100,7 +100,7 @@ export default function TrainingListPage() {
         </div>
 
         <Card className="overflow-hidden p-0">
-          <div className="flex items-center justify-between border-b border-[#ececea] px-6 py-5">
+          <div className="flex items-center justify-between border-b border-[#ececea] px-4 py-5 sm:px-6">
             <div className="text-2xl font-black">
               <span className="font-normal italic text-[#8b8a84]">staff/</span>
               members
@@ -116,7 +116,7 @@ export default function TrainingListPage() {
           ) : activeStaff.length === 0 ? (
             <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">No active training staff found.</div>
           ) : (
-            <div className="grid gap-4 p-6 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 p-4 sm:p-6 md:grid-cols-2 xl:grid-cols-3">
               {activeStaff.map((staff) => (
                 <a
                   key={staff.firestoreId}

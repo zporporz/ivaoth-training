@@ -129,7 +129,7 @@ function DocsManager() {
 
   if (!canManage) {
     return (
-      <main className="relative z-10 min-h-screen px-6 py-6">
+      <main className="relative z-10 min-h-screen px-4 py-4 sm:px-6 sm:py-6">
         <Navbar />
         <section className="mx-auto max-w-[900px] py-20">
           <Card>
@@ -147,20 +147,20 @@ function DocsManager() {
   }
 
   return (
-    <main className="relative z-10 min-h-screen px-6 py-6">
+    <main className="relative z-10 min-h-screen px-4 py-4 sm:px-6 sm:py-6">
       <Navbar />
 
-      <section className="mx-auto max-w-[1480px] py-10">
+      <section className="mx-auto max-w-[1480px] py-6 sm:py-10">
         <div className="mb-8">
           <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">ivao-th / academy cms</div>
-          <h1 className="mt-3 text-5xl font-black tracking-[-0.04em]">
+          <h1 className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-5xl">
             <span className="font-normal italic text-[#4b4b48]">Manage</span> training docs<span className="text-[#ff5a1f]">.</span>
           </h1>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
           <Card>
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-xs font-black uppercase text-[#8b8a84]">{editingId ? "Edit Doc" : "Add Doc"}</div>
               {editingId && <button onClick={handleCancelEdit} className="rounded-full border border-[#dddbd6] px-3 py-1 text-xs font-black text-[#4b4b48]">cancel</button>}
             </div>
@@ -178,10 +178,10 @@ function DocsManager() {
           </Card>
 
           <Card className="overflow-hidden p-0">
-            <div className="border-b border-[#ececea] px-6 py-5 text-2xl font-black">training docs database</div>
+            <div className="border-b border-[#ececea] px-4 py-5 text-2xl font-black sm:px-6">training docs database</div>
             <div className="max-h-[calc(100vh-16rem)] overflow-y-auto">
               {docs.length === 0 ? <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">No docs yet.</div> : docs.map((item) => (
-                <div key={item.firestoreId} className="flex items-center justify-between border-b border-[#ececea] px-6 py-5">
+                <div key={item.firestoreId} className="flex flex-col gap-3 border-b border-[#ececea] px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                   <div><div className="font-black">{item.title}</div><div className="mt-1 text-sm font-bold italic text-[#8b8a84]">#{item.order ?? "-"} · {item.type} {item.active === false ? "· inactive" : ""}</div></div>
                   <div className="flex gap-2"><button onClick={() => handleEdit(item)} className="rounded-full border border-[#dddbd6] px-3 py-1 text-xs font-black">edit</button><button onClick={() => handleDelete(item.firestoreId)} className="rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-black text-red-600">delete</button></div>
                 </div>

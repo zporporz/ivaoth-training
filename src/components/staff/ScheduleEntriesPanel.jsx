@@ -28,8 +28,11 @@ function ScheduleEntryRow({
   onClaim,
 }) {
   return (
-    <div className="grid grid-cols-[90px_120px_80px_1fr_220px] items-center gap-4 border-b border-[#ececea] px-6 py-5 last:border-b-0">
-      <div className="text-sm font-black text-[#8b8a84]">
+    <div
+      data-schedule-session-id={s.firestoreId}
+      className="grid gap-3 border-b border-[#ececea] px-4 py-5 last:border-b-0 sm:px-6 xl:grid-cols-[90px_120px_80px_1fr_220px] xl:items-center xl:gap-4"
+    >
+      <div className="text-xs font-black uppercase text-[#8b8a84] xl:text-sm xl:normal-case">
         {s.firestoreId.slice(0, 7)}
       </div>
 
@@ -53,7 +56,7 @@ function ScheduleEntryRow({
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex flex-wrap items-center justify-start gap-2 xl:justify-end">
         <StatusBadge
           status={completed && s.status === "Scheduled" ? "Completed" : s.status}
         />
@@ -114,13 +117,13 @@ export default function ScheduleEntriesPanel({
 
   return (
     <Card className="overflow-hidden p-0">
-      <div className="flex flex-col gap-4 border-b border-[#ececea] px-6 py-5 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 border-b border-[#ececea] px-4 py-5 sm:px-6 md:flex-row md:items-center md:justify-between">
         <div className="text-2xl font-black">
           <span className="font-normal italic text-[#8b8a84]">training/</span>schedule
           entries
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <MonthSelect value={month} onChange={setMonth} options={options} />
 
           <div className="grid grid-cols-2 rounded-full border border-[#ececea] bg-[#fbfbfa] p-1">
@@ -149,19 +152,19 @@ export default function ScheduleEntriesPanel({
 
       <div className="max-h-[calc(100vh-16rem)] overflow-y-auto">
         {loading ? (
-          <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">
+          <div className="px-4 py-8 text-sm font-bold text-[#8b8a84] sm:px-6">
             Loading sessions...
           </div>
         ) : sessions.length === 0 ? (
-          <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">No sessions yet.</div>
+          <div className="px-4 py-8 text-sm font-bold text-[#8b8a84] sm:px-6">No sessions yet.</div>
         ) : active.length === 0 ? (
-          <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">
+          <div className="px-4 py-8 text-sm font-bold text-[#8b8a84] sm:px-6">
             No sessions in this filter.
           </div>
         ) : (
           groups.map((group) => (
             <div key={group.label}>
-              <div className="sticky top-0 z-10 border-b border-[#ececea] bg-[#fbfbfa] px-6 py-3 text-xs font-black uppercase tracking-wide text-[#8b8a84]">
+              <div className="sticky top-0 z-10 border-b border-[#ececea] bg-[#fbfbfa] px-4 py-3 text-xs font-black uppercase tracking-wide text-[#8b8a84] sm:px-6">
                 {group.label}
               </div>
 

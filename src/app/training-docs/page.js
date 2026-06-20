@@ -29,11 +29,11 @@ export default function TrainingDocsPage() {
 
   if (!session) {
     return (
-      <main className="relative z-10 min-h-screen px-6 py-6">
+      <main className="relative z-10 min-h-screen px-4 py-4 sm:px-6 sm:py-6">
         <Navbar />
 
-        <section className="mx-auto max-w-[900px] py-24 text-center">
-          <div className="text-5xl font-black tracking-[-0.04em]">
+        <section className="mx-auto max-w-[900px] py-20 text-center sm:py-24">
+          <div className="text-3xl font-black tracking-[-0.04em] sm:text-5xl">
             Login required<span className="text-[#ff5a1f]">.</span>
           </div>
 
@@ -46,17 +46,17 @@ export default function TrainingDocsPage() {
   }
 
   return (
-    <main className="relative z-10 min-h-screen px-6 py-6">
+    <main className="relative z-10 min-h-screen px-4 py-4 sm:px-6 sm:py-6">
       <Navbar />
 
-      <section className="mx-auto max-w-[1480px] py-10">
-        <div className="mb-10 flex items-end justify-between gap-5">
+      <section className="mx-auto max-w-[1480px] py-6 sm:py-10">
+        <div className="mb-10 flex flex-col items-start justify-between gap-5 lg:flex-row lg:items-end">
           <div>
             <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
               ivao-th / academy / knowledge hub
             </div>
 
-            <h1 className="mt-3 text-6xl font-black tracking-[-0.05em] leading-none">
+            <h1 className="mt-3 text-4xl font-black leading-none tracking-[-0.05em] sm:text-6xl">
               <span className="font-normal italic text-[#4b4b48]">Training</span> Docs
               <span className="text-[#ff5a1f]">.</span>
             </h1>

@@ -15,7 +15,7 @@ import StatusBadge from "./StatusBadge";
 
 function TeachingRow({ s, completed, canEdit, canDelete, onEdit, onDelete }) {
   return (
-    <div className="grid grid-cols-[120px_90px_1fr_210px] items-center gap-4 border-b border-[#ececea] px-6 py-5 last:border-b-0">
+    <div className="grid gap-3 border-b border-[#ececea] px-4 py-5 last:border-b-0 sm:px-6 xl:grid-cols-[120px_90px_1fr_210px] xl:items-center xl:gap-4">
       <div>
         <div className="font-black">{s.date}</div>
         <div className="text-sm font-bold italic text-[#8b8a84]">{s.time}</div>
@@ -45,7 +45,7 @@ function TeachingRow({ s, completed, canEdit, canDelete, onEdit, onDelete }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex flex-wrap items-center justify-start gap-2 xl:justify-end">
         {canEdit && (
           <button
             onClick={() => onEdit(s)}
@@ -86,7 +86,7 @@ export default function TeachingSchedule({
 
   return (
     <Card className="mb-6 overflow-hidden p-0">
-      <div className="flex flex-col gap-4 border-b border-[#ececea] px-6 py-5 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 border-b border-[#ececea] px-4 py-5 sm:px-6 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
             personal trainer view
@@ -96,7 +96,7 @@ export default function TeachingSchedule({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <MonthSelect value={month} onChange={setMonth} options={options} />
 
           <div className="grid grid-cols-2 rounded-full border border-[#ececea] bg-[#fbfbfa] p-1">
@@ -128,21 +128,21 @@ export default function TeachingSchedule({
       </div>
 
       {loading ? (
-        <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">
+        <div className="px-4 py-8 text-sm font-bold text-[#8b8a84] sm:px-6">
           Loading your sessions...
         </div>
       ) : sessions.length === 0 ? (
-        <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">
+        <div className="px-4 py-8 text-sm font-bold text-[#8b8a84] sm:px-6">
           You do not have any assigned teaching sessions yet.
         </div>
       ) : active.length === 0 ? (
-        <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">
+        <div className="px-4 py-8 text-sm font-bold text-[#8b8a84] sm:px-6">
           No sessions in this filter.
         </div>
       ) : (
         groups.map((group) => (
           <div key={group.label}>
-            <div className="border-b border-[#ececea] bg-[#fbfbfa] px-6 py-3 text-xs font-black uppercase tracking-wide text-[#8b8a84]">
+            <div className="border-b border-[#ececea] bg-[#fbfbfa] px-4 py-3 text-xs font-black uppercase tracking-wide text-[#8b8a84] sm:px-6">
               {group.label}
             </div>
 

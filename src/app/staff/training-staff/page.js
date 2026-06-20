@@ -136,7 +136,7 @@ function TrainingStaffManager() {
 
   if (!isWebmaster) {
     return (
-      <main className="relative z-10 min-h-screen px-6 py-6">
+      <main className="relative z-10 min-h-screen px-4 py-4 sm:px-6 sm:py-6">
         <Navbar />
 
         <section className="mx-auto max-w-[900px] py-20">
@@ -158,16 +158,16 @@ function TrainingStaffManager() {
   }
 
   return (
-    <main className="relative z-10 min-h-screen px-6 py-6">
+    <main className="relative z-10 min-h-screen px-4 py-4 sm:px-6 sm:py-6">
       <Navbar />
 
-      <section className="mx-auto max-w-[1480px] py-10">
+      <section className="mx-auto max-w-[1480px] py-6 sm:py-10">
         <div className="mb-8">
           <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
             ivao-th / training department / webmaster
           </div>
 
-          <h1 className="mt-3 text-5xl font-black tracking-[-0.04em]">
+          <h1 className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-5xl">
             <span className="font-normal italic text-[#4b4b48]">Manage</span> training list
             <span className="text-[#ff5a1f]">.</span>
           </h1>
@@ -175,7 +175,7 @@ function TrainingStaffManager() {
 
         <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
           <Card>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-xs font-black uppercase text-[#8b8a84]">
                 {editingId ? "Edit Training Staff" : "Add Training Staff"}
               </div>
@@ -254,7 +254,7 @@ function TrainingStaffManager() {
           </Card>
 
           <Card className="overflow-hidden p-0">
-            <div className="border-b border-[#ececea] px-6 py-5">
+            <div className="border-b border-[#ececea] px-4 py-5 sm:px-6">
               <div className="text-2xl font-black">
                 <span className="font-normal italic text-[#8b8a84]">training/</span>staff database
               </div>
@@ -265,7 +265,7 @@ function TrainingStaffManager() {
                 <div className="px-6 py-8 text-sm font-bold text-[#8b8a84]">No staff added yet.</div>
               ) : (
                 staffList.map((staff) => (
-                  <div key={staff.firestoreId} className="grid grid-cols-[70px_1fr_180px] items-center gap-4 border-b border-[#ececea] px-6 py-5">
+                  <div key={staff.firestoreId} className="grid gap-3 border-b border-[#ececea] px-4 py-5 sm:px-6 xl:grid-cols-[70px_1fr_180px] xl:items-center xl:gap-4">
                     <div className="rounded-full bg-[#fbfbfa] px-3 py-1 text-center text-xs font-black text-[#8b8a84]">
                       #{staff.order ?? "-"}
                     </div>
@@ -280,7 +280,7 @@ function TrainingStaffManager() {
                       {staff.avatarUrl && <div className="mt-1 text-xs font-black text-[#8b8a84]">{staff.avatarUrl}</div>}
                     </div>
 
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex flex-wrap items-center justify-start gap-2 xl:justify-end">
                       <button onClick={() => handleEdit(staff)} className="rounded-full border border-[#dddbd6] bg-white px-3 py-1 text-xs font-black text-[#4b4b48] hover:bg-[#f3f3f1]">
                         edit
                       </button>

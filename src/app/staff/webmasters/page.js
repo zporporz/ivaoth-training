@@ -100,7 +100,7 @@ function WebmasterManager() {
 
   if (!isCoreOwner) {
     return (
-      <main className="relative z-10 min-h-screen px-6 py-6">
+      <main className="relative z-10 min-h-screen px-4 py-4 sm:px-6 sm:py-6">
         <Navbar />
 
         <section className="mx-auto max-w-[900px] py-20">
@@ -120,16 +120,16 @@ function WebmasterManager() {
   }
 
   return (
-    <main className="relative z-10 min-h-screen px-6 py-6">
+    <main className="relative z-10 min-h-screen px-4 py-4 sm:px-6 sm:py-6">
       <Navbar />
 
-      <section className="mx-auto max-w-[1480px] py-10">
+      <section className="mx-auto max-w-[1480px] py-6 sm:py-10">
         <div className="mb-8">
           <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
             ivao-th / system access / core webmaster
           </div>
 
-          <h1 className="mt-3 text-5xl font-black tracking-[-0.04em]">
+          <h1 className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-5xl">
             <span className="font-normal italic text-[#4b4b48]">Manage</span> webmasters
             <span className="text-[#ff5a1f]">.</span>
           </h1>
@@ -169,7 +169,7 @@ function WebmasterManager() {
           </Card>
 
           <Card className="overflow-hidden p-0">
-            <div className="border-b border-[#ececea] px-6 py-5">
+            <div className="border-b border-[#ececea] px-4 py-5 sm:px-6">
               <div className="text-2xl font-black">
                 <span className="font-normal italic text-[#8b8a84]">webmaster/</span>access list
               </div>
@@ -181,7 +181,7 @@ function WebmasterManager() {
                 const protectedOwner = isCoreWebmasterVid(vid);
 
                 return (
-                  <div key={vid} className="grid grid-cols-[1fr_160px] items-center gap-4 border-b border-[#ececea] px-6 py-5">
+                  <div key={vid} className="grid gap-3 border-b border-[#ececea] px-4 py-5 sm:px-6 lg:grid-cols-[1fr_160px] lg:items-center lg:gap-4">
                     <div>
                       <div className="font-black">{item.name || "Unnamed webmaster"}</div>
                       <div className="mt-1 text-sm font-bold italic text-[#8b8a84]">
@@ -191,7 +191,7 @@ function WebmasterManager() {
                       {item.note && <div className="mt-2 text-sm font-semibold text-[#4b4b48]">{item.note}</div>}
                     </div>
 
-                    <div className="flex justify-end">
+                    <div className="flex justify-start lg:justify-end">
                       {protectedOwner ? (
                         <span className="rounded-full bg-[#0a2342] px-3 py-1 text-xs font-black text-white">locked</span>
                       ) : (
