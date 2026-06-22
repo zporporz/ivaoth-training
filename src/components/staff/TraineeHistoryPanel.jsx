@@ -140,8 +140,7 @@ function buildTraineeIndex(sessions) {
         searchText: [
           trainee.name,
           trainee.vid,
-          programs.join(" "),
-          trainers.map((trainer) => `${trainer.name} ${trainer.vid}`).join(" "),
+          ...sortedSessions.map((session) => session.trainee || ""),
         ]
           .join(" ")
           .toLowerCase(),
