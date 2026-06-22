@@ -2,9 +2,18 @@
 
 import { useMemo, useState } from "react";
 
+import programs from "../../data/programs";
 import { sessionToDate } from "../../lib/staffSessions";
 import Card from "../ui/Card";
 import StatusBadge from "./StatusBadge";
+
+const programGroupByCode = new Map(programs.map((program) => [program.code, program.group]));
+
+const recordFilters = [
+  { key: "ALL", label: "All" },
+  { key: "ATC", label: "ATC" },
+  { key: "Pilot", label: "Pilot / PP" },
+];
 
 function traineeKeyFor(session) {
   return String(
@@ -25,6 +34,10 @@ function sortByNewest(a, b) {
   const dateB = sessionToDate(b)?.getTime() || 0;
 
   return dateB - dateA;
+}
+
+function sessionMatchesFilter(session, filter) {
+  return filter === "ALL" || programGroupByCode.get(session.program) === filter;
 }
 
 function buildHistory(sessions) {
@@ -154,9 +167,14 @@ export default function TraineeHistoryPanel({ loading, sessions }) {
   const [selectedTraineeKey, setSelectedTraineeKey] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSearchTraineeKey, setSelectedSearchTraineeKey] = useState("");
+  const [recordFilter, setRecordFilter] = useState("ALL");
 
-  const trainers = useMemo(() => buildHistory(sessions), [sessions]);
-  const traineeIndex = useMemo(() => buildTraineeIndex(sessions), [sessions]);
+  const filteredSessions = useMemo(
+    () => sessions.filter((session) => sessionMatchesFilter(session, recordFilter)),
+    [recordFilter, sessions],
+  );
+  const trainers = useMemo(() => buildHistory(filteredSessions), [filteredSessions]);
+  const traineeIndex = useMemo(() => buildTraineeIndex(filteredSessions), [filteredSessions]);
   const searchTerm = searchQuery.trim().toLowerCase();
   const searchResults = useMemo(() => {
     if (!searchTerm) return [];
@@ -177,6 +195,13 @@ export default function TraineeHistoryPanel({ loading, sessions }) {
     setSelectedTraineeKey("");
   }
 
+  function selectRecordFilter(filter) {
+    setRecordFilter(filter);
+    setSelectedTrainerKey("");
+    setSelectedTraineeKey("");
+    setSelectedSearchTraineeKey("");
+  }
+
   const detailTrainee = searchTerm ? selectedSearchTrainee : selectedTrainee;
 
   return (
@@ -195,10 +220,32 @@ export default function TraineeHistoryPanel({ loading, sessions }) {
           </p>
         </div>
 
-        <div className="w-full lg:max-w-[520px]">
-          <label className="block text-xs font-black uppercase tracking-wide text-[#8b8a84]">
-            search trainee
-          </label>
+        <div className="w-full lg:max-w-[560px]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <label className="block text-xs font-black uppercase tracking-wide text-[#8b8a84]">
+              search trainee
+            </label>
+
+            <div className="grid grid-cols-3 rounded-full border border-[#ececea] bg-[#fbfbfa] p-1">
+              {recordFilters.map((filter) => (
+                <button
+                  key={filter.key}
+                  type="button"
+                  onClick={() => selectRecordFilter(filter.key)}
+                  className={`cursor-pointer rounded-full px-3 py-2 text-[11px] font-black transition ${
+                    recordFilter === filter.key
+                      ? filter.key === "Pilot"
+                        ? "bg-[#ff5a1f] text-white"
+                        : "bg-black text-white"
+                      : "text-[#8b8a84] hover:bg-white"
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="mt-2 flex gap-2">
             <input
               value={searchQuery}
@@ -226,12 +273,12 @@ export default function TraineeHistoryPanel({ loading, sessions }) {
               <div className="text-[10px] font-black uppercase text-[#8b8a84]">trainers</div>
             </div>
             <div className="rounded-2xl border border-[#ececea] bg-[#fbfbfa] px-3 py-3">
-              <div className="text-xl font-black">{sessions.length}</div>
+              <div className="text-xl font-black">{filteredSessions.length}</div>
               <div className="text-[10px] font-black uppercase text-[#8b8a84]">sessions</div>
             </div>
             <div className="rounded-2xl border border-[#ececea] bg-[#fbfbfa] px-3 py-3">
               <div className="text-xl font-black">
-                {new Set(sessions.map(traineeKeyFor)).size}
+                {new Set(filteredSessions.map(traineeKeyFor)).size}
               </div>
               <div className="text-[10px] font-black uppercase text-[#8b8a84]">trainees</div>
             </div>
@@ -243,9 +290,13 @@ export default function TraineeHistoryPanel({ loading, sessions }) {
         <div className="px-4 py-8 text-sm font-bold text-[#8b8a84] sm:px-6">
           Loading trainee history...
         </div>
-      ) : trainers.length === 0 ? (
+      ) : sessions.length === 0 ? (
         <div className="px-4 py-8 text-sm font-bold text-[#8b8a84] sm:px-6">
           No training sessions yet.
+        </div>
+      ) : trainers.length === 0 ? (
+        <div className="px-4 py-8 text-sm font-bold text-[#8b8a84] sm:px-6">
+          No {recordFilter === "Pilot" ? "Pilot / PP" : recordFilter} records in this filter.
         </div>
       ) : searchTerm ? (
         <div className="grid gap-0 lg:grid-cols-[1fr_0.9fr_1.25fr]">
