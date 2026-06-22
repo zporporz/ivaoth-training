@@ -12,7 +12,7 @@ const programGroupByCode = new Map(programs.map((program) => [program.code, prog
 const recordFilters = [
   { key: "ALL", label: "All" },
   { key: "ATC", label: "ATC" },
-  { key: "Pilot", label: "Pilot / PP" },
+  { key: "Pilot", label: "Pilot" },
 ];
 
 function traineeKeyFor(session) {
