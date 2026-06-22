@@ -7,6 +7,7 @@ import Card from "../../components/ui/Card";
 import ScheduleEntriesPanel from "../../components/staff/ScheduleEntriesPanel";
 import SessionForm from "../../components/staff/SessionForm";
 import TeachingSchedule from "../../components/staff/TeachingSchedule";
+import TraineeHistoryPanel from "../../components/staff/TraineeHistoryPanel";
 import useTrainingSessions, { trainerLabel } from "../../hooks/useTrainingSessions";
 import { canManageWebmasters, canManualAddTraining } from "../../lib/permissions";
 
@@ -100,6 +101,8 @@ export default function OriginalStaffPage() {
           onEdit={editSession}
           onDelete={deleteSession}
         />
+
+        <TraineeHistoryPanel loading={loading} sessions={sessions} />
 
         <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
           <SessionForm
