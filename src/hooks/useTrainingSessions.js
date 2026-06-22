@@ -17,7 +17,7 @@ import {
   canDeleteSession,
   canEditSession,
 } from "../lib/permissions";
-import { isValidZuluTime } from "../lib/staffSessions";
+import { isValidZuluTime, sessionToDate } from "../lib/staffSessions";
 
 export const emptyTrainingSessionForm = {
   date: "",
@@ -50,6 +50,21 @@ export function getTrainerPosition(session) {
 export function trainerLabel(session) {
   const meta = [session?.vid, getTrainerPosition(session)].filter(Boolean).join(" · ");
   return meta ? `${getTrainerName(session)} · ${meta}` : getTrainerName(session);
+}
+
+function findKnownTrainee(sessions, traineeVid) {
+  const cleanVid = String(traineeVid || "").trim();
+  if (!cleanVid) return null;
+
+  return sessions
+    .filter((session) => String(session.traineeVid || "").trim() === cleanVid)
+    .filter((session) => session.traineeName || session.trainee)
+    .sort((a, b) => {
+      const dateA = sessionToDate(a)?.getTime() || 0;
+      const dateB = sessionToDate(b)?.getTime() || 0;
+
+      return dateB - dateA;
+    })[0];
 }
 
 export default function useTrainingSessions() {
@@ -87,6 +102,18 @@ export default function useTrainingSessions() {
       return () => clearTimeout(timeout);
     }
 
+    const knownTrainee = findKnownTrainee(sessions, traineeVid);
+    const knownName = knownTrainee?.traineeName || knownTrainee?.trainee || "";
+    const historyTimeout = setTimeout(() => {
+      if (!knownName) return;
+
+      setForm((prev) => {
+        if (prev.traineeVid !== traineeVid || prev.traineeName) return prev;
+        return { ...prev, traineeName: knownName };
+      });
+      setTraineeLookupStatus("history-found");
+    }, 0);
+
     const controller = new AbortController();
     const timeout = setTimeout(async () => {
       try {
@@ -96,7 +123,7 @@ export default function useTrainingSessions() {
         });
 
         if (!response.ok) {
-          setTraineeLookupStatus("not-found");
+          setTraineeLookupStatus(knownName ? "history-found" : "not-found");
           return;
         }
 
@@ -108,15 +135,18 @@ export default function useTrainingSessions() {
         );
         setTraineeLookupStatus("found");
       } catch (error) {
-        if (error.name !== "AbortError") setTraineeLookupStatus("error");
+        if (error.name !== "AbortError") {
+          setTraineeLookupStatus(knownName ? "history-found" : "error");
+        }
       }
     }, 600);
 
     return () => {
+      clearTimeout(historyTimeout);
       clearTimeout(timeout);
       controller.abort();
     };
-  }, [form.traineeVid]);
+  }, [form.traineeName, form.traineeVid, sessions]);
 
   async function publishSession() {
     if (
