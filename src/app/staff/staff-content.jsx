@@ -16,11 +16,16 @@ import {
   canManualAddTraining,
 } from "../../lib/permissions";
 
-function ToolCard({ title, eyebrow, description, active, href, onClick }) {
+function ToolCard({ title, eyebrow, description, active, href, onClick, variant = "default" }) {
+  const isPrimary = variant === "primary";
+  const activeClass = isPrimary
+    ? "border-[#ff5a1f] bg-[#ff5a1f] text-white shadow-[0_18px_45px_rgba(255,90,31,0.28)]"
+    : "border-[#0a2342] bg-[#0a2342] text-white";
+  const inactiveClass = isPrimary
+    ? "border-[#ff5a1f]/25 bg-gradient-to-br from-[#ffefe7] via-white to-white text-black shadow-[0_16px_38px_rgba(255,90,31,0.12)] hover:border-[#ff5a1f]/70"
+    : "border-[#ececea] bg-white/80 text-black";
   const className = `min-h-[132px] rounded-[26px] border p-5 text-left transition hover:-translate-y-0.5 hover:shadow-md ${
-    active
-      ? "border-[#0a2342] bg-[#0a2342] text-white"
-      : "border-[#ececea] bg-white/80 text-black"
+    active ? activeClass : inactiveClass
   }`;
 
   const content = (
@@ -40,6 +45,15 @@ function ToolCard({ title, eyebrow, description, active, href, onClick }) {
       >
         {description}
       </div>
+      {isPrimary && (
+        <div
+          className={`mt-4 inline-flex rounded-full px-3 py-1 text-xs font-black ${
+            active ? "bg-white text-[#ff5a1f]" : "bg-[#ff5a1f] text-white"
+          }`}
+        >
+          Start here
+        </div>
+      )}
     </>
   );
 
@@ -126,6 +140,14 @@ export default function OriginalStaffPage() {
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             <ToolCard
+              eyebrow="session"
+              title="Create Session"
+              description="Create, edit, delete, claim, and review schedule entries."
+              active={activeTool === "create"}
+              onClick={() => setActiveTool("create")}
+              variant="primary"
+            />
+            <ToolCard
               eyebrow="personal"
               title="My Schedule"
               description="Your own upcoming and completed teaching sessions."
@@ -138,13 +160,6 @@ export default function OriginalStaffPage() {
               description="Pick trainer, then trainee, then inspect session history."
               active={activeTool === "records"}
               onClick={() => setActiveTool("records")}
-            />
-            <ToolCard
-              eyebrow="session"
-              title="Create Session"
-              description="Create, edit, delete, claim, and review schedule entries."
-              active={activeTool === "create"}
-              onClick={() => setActiveTool("create")}
             />
             {canOpenDocsManager && (
               <ToolCard
