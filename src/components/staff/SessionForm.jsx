@@ -102,6 +102,8 @@ export default function SessionForm({
               className={`mt-2 text-xs font-black ${
                 traineeLookupStatus === "found"
                   ? "text-[#16a34a]"
+                  : traineeLookupStatus === "history-found"
+                    ? "text-[#0a2342]"
                   : traineeLookupStatus === "loading"
                     ? "text-[#8b8a84]"
                     : "text-red-600"
@@ -109,6 +111,8 @@ export default function SessionForm({
             >
               {traineeLookupStatus === "loading" && "Looking up IVAO profile..."}
               {traineeLookupStatus === "found" && "Trainee name filled from IVAO profile."}
+              {traineeLookupStatus === "history-found" &&
+                "Trainee name filled from existing training records."}
               {traineeLookupStatus === "not-found" &&
                 "Could not find this VID. You can still type the name manually."}
               {traineeLookupStatus === "error" &&
