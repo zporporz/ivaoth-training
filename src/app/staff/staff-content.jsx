@@ -75,7 +75,7 @@ function ToolCard({ title, eyebrow, description, active, href, onClick, variant 
 export default function OriginalStaffPage() {
   const [teachingTab, setTeachingTab] = useState("upcoming");
   const [entriesTab, setEntriesTab] = useState("upcoming");
-  const [activeTool, setActiveTool] = useState("schedule");
+  const [activeTool, setActiveTool] = useState("create");
 
   const {
     sessions,
