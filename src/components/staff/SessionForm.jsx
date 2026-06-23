@@ -1,6 +1,7 @@
 import Card from "../ui/Card";
 import { numericInputToZulu, timeToNumericInput } from "../../lib/staffSessions";
 import programs from "../../data/programs";
+import sessionTypes from "../../data/sessionTypes";
 
 export default function SessionForm({
   editingId,
@@ -74,11 +75,9 @@ export default function SessionForm({
           onChange={(event) => onChange("type", event.target.value)}
           className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none"
         >
-          <option>Theory Training</option>
-          <option>Unofficial Practical</option>
-          <option>Official Practical</option>
-          <option>Theory Exam</option>
-          <option>Practical Exam</option>
+          {sessionTypes.map((type) => (
+            <option key={type.id}>{type.label}</option>
+          ))}
         </select>
 
         <input

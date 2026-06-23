@@ -14,6 +14,7 @@ import {
 } from "../../../lib/staffSessions";
 import { CORE_WEBMASTER_VID, isCoreWebmasterVid } from "../../../lib/useWebmasterAccess";
 import programs from "../../../data/programs";
+import sessionTypes from "../../../data/sessionTypes";
 
 const emptyForm = {
   date: "",
@@ -224,7 +225,9 @@ function ManualTrainingManager() {
             </select>
 
             <select value={form.type} onChange={(e) => updateForm("type", e.target.value)} className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none">
-              <option>Theory Training</option><option>Unofficial Practical</option><option>Official Practical</option><option>Theory Exam</option><option>Practical Exam</option>
+              {sessionTypes.map((type) => (
+                <option key={type.id}>{type.label}</option>
+              ))}
             </select>
 
             <input value={form.position} onChange={(e) => updateForm("position", e.target.value)} placeholder="Position e.g. VTBS_TWR" className="md:col-span-2 w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold uppercase outline-none" />
