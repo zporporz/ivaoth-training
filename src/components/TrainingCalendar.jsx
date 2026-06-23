@@ -106,9 +106,20 @@ function isTheoryTraining(session) {
   return session.type === "Theory Training" && session.status !== "Exam";
 }
 
+function isCompactTraining(session) {
+  return (
+    (session.type === "Theory Training" || session.type === "Mock-up Practical Training") &&
+    session.status !== "Exam"
+  );
+}
+
+function compactTrainingLabel(session) {
+  return session.type === "Mock-up Practical Training" ? "Mock-up" : "Theory";
+}
+
 function sortCalendarSessions(a, b) {
-  const priorityA = isTheoryTraining(a) ? 1 : 0;
-  const priorityB = isTheoryTraining(b) ? 1 : 0;
+  const priorityA = isCompactTraining(a) ? 1 : 0;
+  const priorityB = isCompactTraining(b) ? 1 : 0;
 
   if (priorityA !== priorityB) return priorityA - priorityB;
 
@@ -121,10 +132,11 @@ function SessionChip({ session, programs, onClick }) {
   const isExam = session.status === "Exam";
   const isOfficial = session.status === "Official";
   const isUnofficial = session.type?.includes("Unofficial");
-  const isTheory = isTheoryTraining(session);
+  const isCompact = isCompactTraining(session);
 
-  if (isTheory) {
+  if (isCompact) {
     const color = program?.color || "#0a0a0a";
+    const label = compactTrainingLabel(session);
 
     return (
       <button
@@ -135,14 +147,14 @@ function SessionChip({ session, programs, onClick }) {
           backgroundColor: program?.tint || "#fbfbfa",
           color,
         }}
-        title={`${session.time || ""} Theory ${session.program || ""}`}
+        title={`${session.time || ""} ${label} ${session.program || ""}`}
       >
         <span
           className="h-1.5 w-1.5 shrink-0 rounded-full"
           style={{ backgroundColor: color }}
         />
         <span className="shrink-0">{session.time || "-"}</span>
-        <span className="truncate">Theory</span>
+        <span className="truncate">{label}</span>
         <span className="shrink-0 opacity-80">{session.program}</span>
       </button>
     );
@@ -204,15 +216,16 @@ function MobileSessionMark({ session, programs }) {
   const program = programs.find((p) => p.code === session.program);
   const color = session.status === "Exam" ? "#dc2626" : program?.color || "#0a0a0a";
   const time = String(session.time || "").replace(/Z$/i, "Z");
-  const isTheory = isTheoryTraining(session);
+  const isCompact = isCompactTraining(session);
+  const compactLabel = compactTrainingLabel(session);
 
   return (
     <div
       className={`truncate px-1 py-0.5 text-[9px] font-black leading-none shadow-sm ${
-        isTheory ? "rounded-full border" : "rounded-sm border-l-[3px] bg-white/80"
+        isCompact ? "rounded-full border" : "rounded-sm border-l-[3px] bg-white/80"
       }`}
       style={
-        isTheory
+        isCompact
           ? {
               borderColor: `${color}55`,
               backgroundColor: program?.tint || "#fbfbfa",
@@ -220,9 +233,9 @@ function MobileSessionMark({ session, programs }) {
             }
           : { borderLeftColor: color, color }
       }
-      title={`${session.time || ""} ${isTheory ? "Theory" : session.program || ""}`}
+      title={`${session.time || ""} ${isCompact ? compactLabel : session.program || ""}`}
     >
-      {isTheory ? `${time || "-"} Th` : time || "-"}
+      {isCompact ? `${time || "-"} ${compactLabel.slice(0, 2)}` : time || "-"}
     </div>
   );
 }

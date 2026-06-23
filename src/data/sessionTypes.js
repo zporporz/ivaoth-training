@@ -6,7 +6,13 @@ const sessionTypes = [
     examOnly: false,
   },
   {
-    id: "practical-unofficial",
+    id: "mockup-practical",
+    label: "Mock-up Practical Training",
+    desc: "Mock-up practical training without official assessment",
+    examOnly: false,
+  },
+  {
+    id: "practical-unofficial-legacy",
     label: "Unofficial Practical",
     desc: "Practice session without official assessment",
     examOnly: false,
@@ -19,8 +25,8 @@ const sessionTypes = [
   },
   {
     id: "knowledge-check",
-    label: "Knowledge Check-up",
-    desc: "Pre-exam or rating knowledge check",
+    label: "Theory Exam",
+    desc: "Official theoretical examination",
     examOnly: true,
   },
   {
