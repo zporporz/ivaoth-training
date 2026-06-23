@@ -102,12 +102,51 @@ function buildMonthGrid(cursor) {
   });
 }
 
+function isTheoryTraining(session) {
+  return session.type === "Theory Training" && session.status !== "Exam";
+}
+
+function sortCalendarSessions(a, b) {
+  const priorityA = isTheoryTraining(a) ? 1 : 0;
+  const priorityB = isTheoryTraining(b) ? 1 : 0;
+
+  if (priorityA !== priorityB) return priorityA - priorityB;
+
+  return String(a.time || "").localeCompare(String(b.time || ""));
+}
+
 function SessionChip({ session, programs, onClick }) {
   const program = programs.find((p) => p.code === session.program);
 
   const isExam = session.status === "Exam";
   const isOfficial = session.status === "Official";
   const isUnofficial = session.type?.includes("Unofficial");
+  const isTheory = isTheoryTraining(session);
+
+  if (isTheory) {
+    const color = program?.color || "#0a0a0a";
+
+    return (
+      <button
+        onClick={() => onClick(session)}
+        className="flex max-w-full cursor-pointer items-center gap-1.5 overflow-hidden rounded-full border px-2 py-1 text-left text-[9px] font-black leading-none transition hover:-translate-y-0.5 hover:shadow-md"
+        style={{
+          borderColor: `${color}55`,
+          backgroundColor: program?.tint || "#fbfbfa",
+          color,
+        }}
+        title={`${session.time || ""} Theory ${session.program || ""}`}
+      >
+        <span
+          className="h-1.5 w-1.5 shrink-0 rounded-full"
+          style={{ backgroundColor: color }}
+        />
+        <span className="shrink-0">{session.time || "-"}</span>
+        <span className="truncate">Theory</span>
+        <span className="shrink-0 opacity-80">{session.program}</span>
+      </button>
+    );
+  }
 
   return (
     <button
@@ -165,14 +204,25 @@ function MobileSessionMark({ session, programs }) {
   const program = programs.find((p) => p.code === session.program);
   const color = session.status === "Exam" ? "#dc2626" : program?.color || "#0a0a0a";
   const time = String(session.time || "").replace(/Z$/i, "Z");
+  const isTheory = isTheoryTraining(session);
 
   return (
     <div
-      className="truncate rounded-sm border-l-[3px] bg-white/80 px-1 py-0.5 text-[9px] font-black leading-none shadow-sm"
-      style={{ borderLeftColor: color, color }}
-      title={`${session.time || ""} ${session.program || ""}`}
+      className={`truncate px-1 py-0.5 text-[9px] font-black leading-none shadow-sm ${
+        isTheory ? "rounded-full border" : "rounded-sm border-l-[3px] bg-white/80"
+      }`}
+      style={
+        isTheory
+          ? {
+              borderColor: `${color}55`,
+              backgroundColor: program?.tint || "#fbfbfa",
+              color,
+            }
+          : { borderLeftColor: color, color }
+      }
+      title={`${session.time || ""} ${isTheory ? "Theory" : session.program || ""}`}
     >
-      {time || "-"}
+      {isTheory ? `${time || "-"} Th` : time || "-"}
     </div>
   );
 }
@@ -394,7 +444,9 @@ export default function TrainingCalendar({ sessions, programs }) {
 
           <div className="grid grid-cols-7">
             {grid.map((item) => {
-              const daySessions = sessions.filter((s) => s.date === item.key);
+              const daySessions = sessions
+                .filter((s) => s.date === item.key)
+                .sort(sortCalendarSessions);
               const visibleSessions = daySessions.slice(0, 2);
               const hiddenCount = daySessions.length - visibleSessions.length;
               const isToday = item.key === todayKey;
@@ -488,7 +540,9 @@ export default function TrainingCalendar({ sessions, programs }) {
 
             <div className="grid grid-cols-7">
               {grid.map((item) => {
-                const daySessions = sessions.filter((s) => s.date === item.key);
+                const daySessions = sessions
+                  .filter((s) => s.date === item.key)
+                  .sort(sortCalendarSessions);
                 const visibleSessions = daySessions.slice(0, 3);
                 const hiddenCount = daySessions.length - visibleSessions.length;
                 const isToday = item.key === todayKey;
