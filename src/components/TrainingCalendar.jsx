@@ -117,6 +117,23 @@ function compactTrainingLabel(session) {
   return session.type === "Mock-up Practical Training" ? "Mock-up" : "Theory";
 }
 
+function compactTrainingPalette(session, program) {
+  if (session.type === "Theory Training") {
+    return {
+      color: "#6d28d9",
+      tint: "#f3e8ff",
+      border: "#c4b5fd",
+    };
+  }
+
+  const color = program?.color || "#0a0a0a";
+  return {
+    color,
+    tint: program?.tint || "#fbfbfa",
+    border: `${color}55`,
+  };
+}
+
 function sortCalendarSessions(a, b) {
   const priorityA = isCompactTraining(a) ? 1 : 0;
   const priorityB = isCompactTraining(b) ? 1 : 0;
@@ -135,7 +152,7 @@ function SessionChip({ session, programs, onClick }) {
   const isCompact = isCompactTraining(session);
 
   if (isCompact) {
-    const color = program?.color || "#0a0a0a";
+    const palette = compactTrainingPalette(session, program);
     const label = compactTrainingLabel(session);
 
     return (
@@ -143,15 +160,15 @@ function SessionChip({ session, programs, onClick }) {
         onClick={() => onClick(session)}
         className="flex max-w-full cursor-pointer items-center gap-1.5 overflow-hidden rounded-full border px-2 py-1 text-left text-[9px] font-black leading-none transition hover:-translate-y-0.5 hover:shadow-md"
         style={{
-          borderColor: `${color}55`,
-          backgroundColor: program?.tint || "#fbfbfa",
-          color,
+          borderColor: palette.border,
+          backgroundColor: palette.tint,
+          color: palette.color,
         }}
         title={`${session.time || ""} ${label} ${session.program || ""}`}
       >
         <span
           className="h-1.5 w-1.5 shrink-0 rounded-full"
-          style={{ backgroundColor: color }}
+          style={{ backgroundColor: palette.color }}
         />
         <span className="shrink-0">{session.time || "-"}</span>
         <span className="truncate">{label}</span>
@@ -214,10 +231,11 @@ function SessionChip({ session, programs, onClick }) {
 
 function MobileSessionMark({ session, programs }) {
   const program = programs.find((p) => p.code === session.program);
-  const color = session.status === "Exam" ? "#dc2626" : program?.color || "#0a0a0a";
   const time = String(session.time || "").replace(/Z$/i, "Z");
   const isCompact = isCompactTraining(session);
   const compactLabel = compactTrainingLabel(session);
+  const palette = isCompact ? compactTrainingPalette(session, program) : null;
+  const color = session.status === "Exam" ? "#dc2626" : program?.color || "#0a0a0a";
 
   return (
     <div
@@ -227,9 +245,9 @@ function MobileSessionMark({ session, programs }) {
       style={
         isCompact
           ? {
-              borderColor: `${color}55`,
-              backgroundColor: program?.tint || "#fbfbfa",
-              color,
+              borderColor: palette.border,
+              backgroundColor: palette.tint,
+              color: palette.color,
             }
           : { borderLeftColor: color, color }
       }
