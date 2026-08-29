@@ -8,6 +8,9 @@ export default function SessionForm({
   form,
   loginSession,
   traineeLookupStatus,
+  submitStatus,
+  submitMessage,
+  isSubmitting,
   trainerLabel,
   onChange,
   onCancelEdit,
@@ -145,10 +148,30 @@ export default function SessionForm({
 
         <button
           onClick={onSubmit}
-          className="w-full cursor-pointer rounded-2xl bg-black px-5 py-3 font-black text-white transition hover:-translate-y-0.5 hover:bg-[#16a34a] hover:shadow-lg active:translate-y-0"
+          disabled={isSubmitting}
+          className="w-full cursor-pointer rounded-2xl bg-black px-5 py-3 font-black text-white transition hover:-translate-y-0.5 hover:bg-[#16a34a] hover:shadow-lg active:translate-y-0 disabled:cursor-wait disabled:bg-[#8b8a84] disabled:hover:translate-y-0 disabled:hover:shadow-none"
         >
-          {editingId ? "Update Session" : "Publish Session"}
+          {isSubmitting
+            ? editingId
+              ? "Updating..."
+              : "Publishing..."
+            : editingId
+              ? "Update Session"
+              : "Publish Session"}
         </button>
+
+        {submitMessage && (
+          <div
+            className={`rounded-2xl border px-4 py-3 text-sm font-black ${
+              submitStatus === "success"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                : "border-red-200 bg-red-50 text-red-600"
+            }`}
+            role="status"
+          >
+            {submitMessage}
+          </div>
+        )}
       </div>
     </Card>
   );

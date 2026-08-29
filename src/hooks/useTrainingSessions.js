@@ -74,9 +74,16 @@ export default function useTrainingSessions() {
   const [form, setForm] = useState(emptyTrainingSessionForm);
   const loginSession = useClientSession();
   const [traineeLookupStatus, setTraineeLookupStatus] = useState("idle");
+  const [submitStatus, setSubmitStatus] = useState("idle");
+  const [submitMessage, setSubmitMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function updateForm(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
+    if (submitStatus !== "idle") {
+      setSubmitStatus("idle");
+      setSubmitMessage("");
+    }
   }
 
   useEffect(() => {
@@ -149,6 +156,8 @@ export default function useTrainingSessions() {
   }, [form.traineeName, form.traineeVid, sessions]);
 
   async function publishSession() {
+    if (isSubmitting) return;
+
     if (
       !form.date ||
       !isValidZuluTime(form.time) ||
@@ -157,19 +166,22 @@ export default function useTrainingSessions() {
       !form.traineeVid ||
       !form.topic
     ) {
-      alert("กรอก Date, Time, Position, Trainee Name, Trainee VID และ Topic ก่อน");
+      setSubmitStatus("error");
+      setSubmitMessage("กรอก Date, Time, Position, Trainee Name, Trainee VID และ Topic ก่อน");
       return;
     }
 
     if (!loginSession?.vid) {
-      alert("กรุณา login ใหม่ก่อนสร้าง session");
+      setSubmitStatus("error");
+      setSubmitMessage("กรุณา login ใหม่ก่อนสร้าง session");
       return;
     }
 
     const editingSession = sessions.find((session) => session.firestoreId === editingId);
 
     if (editingId && !canEditSession(loginSession, editingSession || {})) {
-      alert("แก้ไขได้เฉพาะ session ที่คุณเป็นคนสอนเท่านั้น");
+      setSubmitStatus("error");
+      setSubmitMessage("แก้ไขได้เฉพาะ session ที่คุณเป็นคนสอนเท่านั้น");
       return;
     }
 
@@ -192,23 +204,41 @@ export default function useTrainingSessions() {
       status: isExam ? "Exam" : isOfficial ? "Official" : "Scheduled",
     };
 
-    if (editingId) {
-      const result = await adminDataRequest(`/sessions/${editingId}`, {
-        method: "PATCH",
-        body: JSON.stringify(sessionData),
-      });
-      await notifyDiscordTraining("modified", result.session || sessionData);
-      setEditingId(null);
-    } else {
-      const result = await adminDataRequest("/sessions", {
-        method: "POST",
-        body: JSON.stringify(sessionData),
-      });
-      await notifyDiscordTraining("new", result.session || sessionData);
-    }
+    const wasEditing = Boolean(editingId);
+    setIsSubmitting(true);
+    setSubmitStatus("idle");
+    setSubmitMessage("");
 
-    setForm(emptyTrainingSessionForm);
-    setTraineeLookupStatus("idle");
+    try {
+      if (editingId) {
+        const result = await adminDataRequest(`/sessions/${editingId}`, {
+          method: "PATCH",
+          body: JSON.stringify(sessionData),
+        });
+        await notifyDiscordTraining("modified", result.session || sessionData);
+        setEditingId(null);
+      } else {
+        const result = await adminDataRequest("/sessions", {
+          method: "POST",
+          body: JSON.stringify(sessionData),
+        });
+        await notifyDiscordTraining("new", result.session || sessionData);
+      }
+
+      setForm(emptyTrainingSessionForm);
+      setTraineeLookupStatus("idle");
+      setSubmitStatus("success");
+      setSubmitMessage(
+        wasEditing
+          ? "แก้ไข session เรียบร้อยแล้ว"
+          : "สร้าง session เรียบร้อยแล้ว",
+      );
+    } catch (error) {
+      setSubmitStatus("error");
+      setSubmitMessage(error.message || "บันทึก session ไม่สำเร็จ ลองใหม่อีกครั้ง");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   async function claimSession(session) {
@@ -242,6 +272,8 @@ export default function useTrainingSessions() {
 
     setEditingId(session.firestoreId);
     setTraineeLookupStatus("idle");
+    setSubmitStatus("idle");
+    setSubmitMessage("");
     setForm({
       date: session.date || "",
       time: session.time || "",
@@ -260,6 +292,8 @@ export default function useTrainingSessions() {
     setEditingId(null);
     setForm(emptyTrainingSessionForm);
     setTraineeLookupStatus("idle");
+    setSubmitStatus("idle");
+    setSubmitMessage("");
   }
 
   return {
@@ -269,6 +303,9 @@ export default function useTrainingSessions() {
     form,
     loginSession,
     traineeLookupStatus,
+    submitStatus,
+    submitMessage,
+    isSubmitting,
     updateForm,
     publishSession,
     claimSession,

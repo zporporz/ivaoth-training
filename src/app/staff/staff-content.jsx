@@ -84,6 +84,9 @@ export default function OriginalStaffPage() {
     form,
     loginSession,
     traineeLookupStatus,
+    submitStatus,
+    submitMessage,
+    isSubmitting,
     updateForm,
     publishSession,
     claimSession,
@@ -236,6 +239,9 @@ export default function OriginalStaffPage() {
               form={form}
               loginSession={loginSession}
               traineeLookupStatus={traineeLookupStatus}
+              submitStatus={submitStatus}
+              submitMessage={submitMessage}
+              isSubmitting={isSubmitting}
               trainerLabel={trainerLabel}
               onChange={updateForm}
               onCancelEdit={cancelEdit}
