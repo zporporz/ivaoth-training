@@ -5,6 +5,10 @@ const PRACTICAL_SESSION_TYPES = new Set([
 
 const PRACTICAL_SESSION_GAP_MINUTES = 120;
 
+function normalizeProgram(value) {
+  return String(value || "").trim().toUpperCase();
+}
+
 function zuluTimeToMinutes(value) {
   const match = String(value || "").match(/^(\d{2})(\d{2})Z$/);
   if (!match) return null;
@@ -55,14 +59,15 @@ export function practicalConflictMessage(conflict) {
     ? ` เวลาที่แนะนำ: ${conflict.suggestions.join(" หรือ ")}`
     : "";
 
-  return `Practical session ต้องห่างกันอย่างน้อย 2 ชั่วโมงในวันเดียวกัน ชนกับ ${time} ${type}${program}${position}.${suggestions}`;
+  return `Practical session rating เดียวกันต้องห่างกันอย่างน้อย 2 ชั่วโมงในวันเดียวกัน ชนกับ ${time} ${type}${program}${position}.${suggestions}`;
 }
 
 export async function findPracticalSessionConflict(db, data, options = {}) {
   if (!isPracticalSessionType(data?.type)) return null;
 
   const requestedMinutes = zuluTimeToMinutes(data.time);
-  if (requestedMinutes === null || !data.date) return null;
+  const requestedProgram = normalizeProgram(data.program);
+  if (requestedMinutes === null || !data.date || !requestedProgram) return null;
 
   const query = db.collection("trainingSessions").where("date", "==", data.date);
   const snapshot = options.transaction
@@ -73,6 +78,7 @@ export async function findPracticalSessionConflict(db, data, options = {}) {
     .filter((item) => item.id !== options.excludeId)
     .map((item) => ({ firestoreId: item.id, ...item.data() }))
     .filter((session) => isPracticalSessionType(session.type))
+    .filter((session) => normalizeProgram(session.program) === requestedProgram)
     .map((session) => ({
       session,
       minutes: zuluTimeToMinutes(session.time),
