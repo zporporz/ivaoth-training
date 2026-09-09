@@ -17,7 +17,8 @@ import {
   canDeleteSession,
   canEditSession,
 } from "../lib/permissions";
-import { isValidZuluTime, sessionToDate } from "../lib/staffSessions";
+import { isValidZuluTime } from "../lib/staffSessions";
+import { findKnownTrainee } from "../lib/traineeHistory";
 
 export const emptyTrainingSessionForm = {
   date: "",
@@ -52,21 +53,6 @@ export function trainerLabel(session) {
   return meta ? `${getTrainerName(session)} · ${meta}` : getTrainerName(session);
 }
 
-function findKnownTrainee(sessions, traineeVid) {
-  const cleanVid = String(traineeVid || "").trim();
-  if (!cleanVid) return null;
-
-  return sessions
-    .filter((session) => String(session.traineeVid || "").trim() === cleanVid)
-    .filter((session) => session.traineeName || session.trainee)
-    .sort((a, b) => {
-      const dateA = sessionToDate(a)?.getTime() || 0;
-      const dateB = sessionToDate(b)?.getTime() || 0;
-
-      return dateB - dateA;
-    })[0];
-}
-
 export default function useTrainingSessions() {
   const [sessions, setSessions] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -79,7 +65,11 @@ export default function useTrainingSessions() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   function updateForm(field, value) {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+      ...(field === "traineeVid" && value !== prev.traineeVid ? { traineeName: "" } : {}),
+    }));
     if (submitStatus !== "idle") {
       setSubmitStatus("idle");
       setSubmitMessage("");

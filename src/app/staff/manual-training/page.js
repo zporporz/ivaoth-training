@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { collection, onSnapshot } from "firebase/firestore";
 
 import { adminDataRequest } from "../../../lib/adminDataClient";
+import { notifyDiscordTraining } from "../../../lib/discordTrainingNotify";
+import { db } from "../../../lib/firebase";
+import { findKnownTrainee } from "../../../lib/traineeHistory";
 import ProtectedStaffPage from "../../../components/ProtectedStaffPage";
 import Navbar from "../../../components/Navbar";
 import Card from "../../../components/ui/Card";
@@ -34,14 +38,26 @@ const emptyForm = {
 function ManualTrainingManager() {
   const session = useClientSession();
   const [form, setForm] = useState(emptyForm);
+  const [sessions, setSessions] = useState([]);
   const [traineeLookupStatus, setTraineeLookupStatus] = useState("idle");
   const [trainerLookupStatus, setTrainerLookupStatus] = useState("idle");
 
   const isCoreOwner = isCoreWebmasterVid(session?.vid);
 
   function updateForm(field, value) {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+      ...(field === "traineeVid" && value !== prev.traineeVid ? { traineeName: "" } : {}),
+    }));
   }
+
+  useEffect(() => {
+    if (!isCoreOwner) return;
+    return onSnapshot(collection(db, "trainingSessions"), (snapshot) => {
+      setSessions(snapshot.docs.map((item) => item.data()));
+    });
+  }, [isCoreOwner]);
 
   useEffect(() => {
     const traineeVid = form.traineeVid.trim();
@@ -51,6 +67,17 @@ function ManualTrainingManager() {
       return () => clearTimeout(timeout);
     }
 
+    const knownTrainee = findKnownTrainee(sessions, traineeVid);
+    const knownName = knownTrainee?.traineeName || knownTrainee?.trainee || "";
+    const historyTimeout = setTimeout(() => {
+      if (!knownName) return;
+      setForm((prev) => {
+        if (prev.traineeVid !== traineeVid || prev.traineeName) return prev;
+        return { ...prev, traineeName: knownName };
+      });
+      setTraineeLookupStatus("history-found");
+    }, 0);
+
     const controller = new AbortController();
     const timeout = setTimeout(async () => {
       try {
@@ -58,7 +85,7 @@ function ManualTrainingManager() {
         const response = await fetch(`/api/ivao/user/${traineeVid}`, { signal: controller.signal });
 
         if (!response.ok) {
-          setTraineeLookupStatus("not-found");
+          setTraineeLookupStatus(knownName ? "history-found" : "not-found");
           return;
         }
 
@@ -67,17 +94,18 @@ function ManualTrainingManager() {
           if (prev.traineeVid !== traineeVid) return prev;
           return { ...prev, traineeName: data.name || prev.traineeName };
         });
-        setTraineeLookupStatus("found");
+        setTraineeLookupStatus(data.name ? "found" : knownName ? "history-found" : "not-found");
       } catch (error) {
-        if (error.name !== "AbortError") setTraineeLookupStatus("error");
+        if (error.name !== "AbortError") setTraineeLookupStatus(knownName ? "history-found" : "error");
       }
     }, 600);
 
     return () => {
+      clearTimeout(historyTimeout);
       clearTimeout(timeout);
       controller.abort();
     };
-  }, [form.traineeVid]);
+  }, [form.traineeVid, sessions]);
 
   useEffect(() => {
     const trainerVid = form.trainerVid.trim();
@@ -132,7 +160,7 @@ function ManualTrainingManager() {
       return;
     }
 
-    await adminDataRequest("/sessions", {
+    const result = await adminDataRequest("/sessions", {
       method: "POST",
       body: JSON.stringify({
         manual: true,
@@ -150,6 +178,8 @@ function ManualTrainingManager() {
         trainerStaffPosition: form.trainerStaffPosition.trim(),
       }),
     });
+
+    await notifyDiscordTraining("new", result.session);
 
     setForm(emptyForm);
     setTraineeLookupStatus("idle");
@@ -251,9 +281,10 @@ function ManualTrainingManager() {
             <div>
               <input value={form.traineeVid} onChange={(e) => updateForm("traineeVid", e.target.value.replace(/\D/g, ""))} placeholder="Trainee VID *" inputMode="numeric" className="w-full rounded-2xl border border-[#dddbd6] bg-[#fbfbfa] px-4 py-3 font-bold outline-none" />
               {traineeLookupStatus !== "idle" && (
-                <div className={`mt-2 text-xs font-black ${traineeLookupStatus === "found" ? "text-[#16a34a]" : traineeLookupStatus === "loading" ? "text-[#8b8a84]" : "text-red-600"}`}>
+                <div className={`mt-2 text-xs font-black ${["found", "history-found"].includes(traineeLookupStatus) ? "text-[#16a34a]" : traineeLookupStatus === "loading" ? "text-[#8b8a84]" : "text-red-600"}`}>
                   {traineeLookupStatus === "loading" && "Looking up trainee profile..."}
                   {traineeLookupStatus === "found" && "Trainee name filled from IVAO profile."}
+                  {traineeLookupStatus === "history-found" && "Trainee name filled from training history."}
                   {traineeLookupStatus === "not-found" && "Could not find this trainee VID. You can still type the name manually."}
                   {traineeLookupStatus === "error" && "Could not lookup trainee VID right now. You can still type the name manually."}
                 </div>
