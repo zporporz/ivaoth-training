@@ -2,11 +2,8 @@
 
 import { useEffect, useState } from "react";
 
-export const CORE_WEBMASTER_VID = "739898";
-
-export function isCoreWebmasterVid(vid) {
-  return String(vid || "") === CORE_WEBMASTER_VID;
-}
+import { hasCoreWebmasterAccess } from "./coreWebmasterAccess";
+export { CORE_WEBMASTER_VID, isCoreWebmasterVid } from "./coreWebmasterAccess";
 
 export function useWebmasterAccess(session) {
   const [remoteAccess, setRemoteAccess] = useState({
@@ -15,7 +12,7 @@ export function useWebmasterAccess(session) {
     resolved: false,
   });
   const vid = String(session?.vid || "");
-  const isCoreOwner = isCoreWebmasterVid(vid);
+  const isCoreOwner = hasCoreWebmasterAccess(session);
 
   useEffect(() => {
     if (!vid || isCoreOwner) return;

@@ -8,6 +8,7 @@ import Navbar from "../../../components/Navbar";
 import Card from "../../../components/ui/Card";
 import { useClientSession } from "../../../lib/authSession";
 import { CORE_WEBMASTER_VID, isCoreWebmasterVid } from "../../../lib/useWebmasterAccess";
+import { hasCoreWebmasterAccess } from "../../../lib/coreWebmasterAccess";
 
 const emptyForm = {
   vid: "",
@@ -39,7 +40,7 @@ function WebmasterManager() {
   const [webmasters, setWebmasters] = useState([]);
   const [form, setForm] = useState(emptyForm);
 
-  const isCoreOwner = isCoreWebmasterVid(session?.vid);
+  const isCoreOwner = hasCoreWebmasterAccess(session);
 
   async function loadWebmasters(signal) {
     const data = await adminDataRequest("/webmasters", { signal });
@@ -111,7 +112,7 @@ function WebmasterManager() {
               <span className="text-[#ff5a1f]">.</span>
             </h1>
             <div className="mt-5 text-base font-semibold text-[#4b4b48]">
-              Only VID {CORE_WEBMASTER_VID} can manage webmaster access.
+              Core webmaster or TH-TC / TH-TAC access is required to manage webmasters.
             </div>
           </Card>
         </section>

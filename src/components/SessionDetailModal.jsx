@@ -16,7 +16,7 @@ function DetailItem({ label, value }) {
 export default function SessionDetailModal({ session, program, onClose }) {
   if (!session) return null;
 
-  const isExam = session.status === "Exam";
+  const isExam = session.status === "Exam" || session.type === "Theory Exam" || session.type === "Practical Exam";
   const accentColor = isExam ? "#dc2626" : program?.color || "#0a0a0a";
   const traineeName = session.traineeName || session.trainee || "Unknown trainee";
   const traineeVid = session.traineeVid || "-";
@@ -67,13 +67,13 @@ export default function SessionDetailModal({ session, program, onClose }) {
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <DetailItem label="Trainee name" value={traineeName} />
-            <DetailItem label="Trainee VID" value={traineeVid} />
+            <DetailItem label={isExam ? "Examinee name" : "Trainee name"} value={traineeName} />
+            <DetailItem label={isExam ? "Examinee VID" : "Trainee VID"} value={traineeVid} />
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <DetailItem label="Trainer" value={trainerName} />
-            <DetailItem label="Trainer VID" value={trainerVid} />
+            <DetailItem label={isExam ? "Examiner name" : "Trainer"} value={trainerName} />
+            <DetailItem label={isExam ? "Examiner VID" : "Trainer VID"} value={trainerVid} />
           </div>
 
           <div className="rounded-3xl border border-[#ececea] bg-[#fbfbfa] p-5">

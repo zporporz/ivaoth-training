@@ -15,7 +15,7 @@ import { useClientSession } from "../../../lib/authSession";
 import { adminDataRequest } from "../../../lib/adminDataClient";
 import { db } from "../../../lib/firebase";
 
-const WEBMASTER_VID = "739898";
+import { hasCoreWebmasterAccess } from "../../../lib/coreWebmasterAccess";
 
 const emptyForm = {
   order: "",
@@ -54,7 +54,7 @@ function TrainingStaffManager() {
     bio: "IVAO Thailand Training Portal Webmaster",
   });
 
-  const isWebmaster = String(session?.vid || "") === WEBMASTER_VID;
+  const isWebmaster = hasCoreWebmasterAccess(session);
 
   useEffect(() => {
     if (!isWebmaster) return;

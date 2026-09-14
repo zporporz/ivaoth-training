@@ -4,7 +4,8 @@ import { NextResponse } from "next/server";
 import { getAdminDb } from "./firebaseAdmin";
 import { getRequestSession } from "./serverSession";
 
-export const CORE_WEBMASTER_VID = "739898";
+import { hasCoreWebmasterAccess } from "./coreWebmasterAccess";
+export { CORE_WEBMASTER_VID } from "./coreWebmasterAccess";
 
 export function errorResponse(message, status = 400) {
   return NextResponse.json({ ok: false, error: message }, { status });
@@ -17,13 +18,13 @@ export function requireTrainingStaff(request) {
 
 export function requireCoreWebmaster(request) {
   const session = getRequestSession(request);
-  return String(session?.vid || "") === CORE_WEBMASTER_VID ? session : null;
+  return hasCoreWebmasterAccess(session) ? session : null;
 }
 
 export async function isWebmaster(session) {
   const vid = String(session?.vid || "");
   if (!vid) return false;
-  if (vid === CORE_WEBMASTER_VID) return true;
+  if (hasCoreWebmasterAccess(session)) return true;
 
   const snapshot = await getAdminDb().collection("webmasters").doc(vid).get();
   return snapshot.exists && snapshot.data()?.active !== false;

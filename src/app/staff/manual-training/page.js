@@ -16,7 +16,7 @@ import {
   numericInputToZulu,
   timeToNumericInput,
 } from "../../../lib/staffSessions";
-import { CORE_WEBMASTER_VID, isCoreWebmasterVid } from "../../../lib/useWebmasterAccess";
+import { hasCoreWebmasterAccess } from "../../../lib/coreWebmasterAccess";
 import programs from "../../../data/programs";
 import sessionTypes from "../../../data/sessionTypes";
 
@@ -42,7 +42,7 @@ function ManualTrainingManager() {
   const [traineeLookupStatus, setTraineeLookupStatus] = useState("idle");
   const [trainerLookupStatus, setTrainerLookupStatus] = useState("idle");
 
-  const isCoreOwner = isCoreWebmasterVid(session?.vid);
+  const isCoreOwner = hasCoreWebmasterAccess(session);
 
   function updateForm(field, value) {
     setForm((prev) => ({
@@ -200,7 +200,7 @@ function ManualTrainingManager() {
               <span className="text-[#ff5a1f]">.</span>
             </h1>
             <div className="mt-5 text-base font-semibold text-[#4b4b48]">
-              Only VID {CORE_WEBMASTER_VID} can manually add training for another trainer.
+              Core webmaster or TH-TC / TH-TAC access is required to add training for another trainer.
             </div>
           </Card>
         </section>
@@ -224,7 +224,7 @@ function ManualTrainingManager() {
           </h1>
 
           <div className="mt-4 max-w-3xl text-base font-semibold text-[#6d6d68]">
-            Create a training session on behalf of another trainer. The session owner will be the trainer entered below, not VID {CORE_WEBMASTER_VID}.
+            Create a training session on behalf of another trainer. The session owner will be the trainer entered below.
           </div>
         </div>
 

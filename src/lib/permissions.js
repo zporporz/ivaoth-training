@@ -1,4 +1,4 @@
-import { isCoreWebmasterVid } from "./useWebmasterAccess";
+import { hasCoreWebmasterAccess } from "./coreWebmasterAccess";
 
 function vidOf(user) {
   return String(user?.vid || "");
@@ -9,7 +9,7 @@ export function isTrainingStaff(user) {
 }
 
 export function isCoreOwner(user) {
-  return isCoreWebmasterVid(vidOf(user));
+  return hasCoreWebmasterAccess(user);
 }
 
 export function isWebmasterUser(user, isWebmaster = false) {
