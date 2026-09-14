@@ -112,7 +112,7 @@ function WebmasterManager() {
               <span className="text-[#ff5a1f]">.</span>
             </h1>
             <div className="mt-5 text-base font-semibold text-[#4b4b48]">
-              Core webmaster or TH-TC / TH-TAC access is required to manage webmasters.
+              Core webmaster or TH-TC / TH-TAC / TH-DIR / TH-ADIR access is required to manage webmasters.
             </div>
           </Card>
         </section>
