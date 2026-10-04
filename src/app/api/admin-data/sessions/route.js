@@ -8,10 +8,6 @@ import {
   requireTrainingStaff,
   withTimestamps,
 } from "../../../../lib/serverDataAccess";
-import {
-  findPracticalSessionConflict,
-  practicalConflictMessage,
-} from "../../../../lib/trainingSessionConflicts";
 
 function sessionPayload(body) {
   const type = cleanString(body.type, 100);
@@ -78,11 +74,6 @@ export async function POST(request) {
 
     const db = getAdminDb();
     const reference = db.collection("trainingSessions").doc();
-
-    const conflict = await findPracticalSessionConflict(db, data);
-    if (conflict) {
-      return errorResponse(practicalConflictMessage(conflict), 409);
-    }
 
     await reference.set(withTimestamps(data, true));
 

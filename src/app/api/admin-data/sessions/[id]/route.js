@@ -8,10 +8,6 @@ import {
   requireTrainingStaff,
   withTimestamps,
 } from "../../../../../lib/serverDataAccess";
-import {
-  findPracticalSessionConflict,
-  practicalConflictMessage,
-} from "../../../../../lib/trainingSessionConflicts";
 
 async function ownedSession(request, id) {
   const loginSession = requireTrainingStaff(request);
@@ -84,13 +80,6 @@ export async function PATCH(request, { params }) {
       !update.topic
     ) {
       return errorResponse("Missing required training session fields");
-    }
-
-    const conflict = await findPracticalSessionConflict(getAdminDb(), update, {
-      excludeId: id,
-    });
-    if (conflict) {
-      return errorResponse(practicalConflictMessage(conflict), 409);
     }
 
     await access.reference.update(withTimestamps(update));
