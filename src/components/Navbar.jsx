@@ -3,11 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useClientSession } from "../lib/authSession";
+import { useWebmasterAccess } from "../lib/useWebmasterAccess";
 import StaffSessionBell from "./StaffSessionBell";
 import UserBadge from "./UserBadge";
 
 export default function Navbar() {
   const session = useClientSession();
+  const { isWebmaster } = useWebmasterAccess(session);
 
   return (
     <nav className="mx-auto flex max-w-[1480px] flex-col gap-4 rounded-[28px] border border-[#ececea] bg-white/70 px-4 py-4 shadow-sm backdrop-blur backdrop-saturate-150 sm:px-6 lg:min-w-max lg:flex-row lg:items-center lg:justify-between lg:gap-0">
@@ -54,7 +56,7 @@ export default function Navbar() {
             Trainer List
           </a>
 
-          {session.hasTrainingAccess && (
+          {(session.hasTrainingAccess || isWebmaster) && (
             <>
               <a href="/staff" className="shrink-0 rounded-full bg-[#0a2342] px-2.5 py-2 text-[13px] font-extrabold text-white transition hover:bg-[#163b6d] lg:px-4 lg:text-base">
                 Staff Console

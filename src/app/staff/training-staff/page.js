@@ -15,7 +15,7 @@ import { useClientSession } from "../../../lib/authSession";
 import { adminDataRequest } from "../../../lib/adminDataClient";
 import { db } from "../../../lib/firebase";
 
-import { hasCoreWebmasterAccess } from "../../../lib/coreWebmasterAccess";
+import { useWebmasterAccess } from "../../../lib/useWebmasterAccess";
 
 const emptyForm = {
   order: "",
@@ -54,7 +54,7 @@ function TrainingStaffManager() {
     bio: "IVAO Thailand Training Portal Webmaster",
   });
 
-  const isWebmaster = hasCoreWebmasterAccess(session);
+  const { isWebmaster, loading: accessLoading } = useWebmasterAccess(session);
 
   useEffect(() => {
     if (!isWebmaster) return;
@@ -133,6 +133,8 @@ function TrainingStaffManager() {
     setEditingId(null);
     setForm(emptyForm);
   }
+
+  if (accessLoading) return <div className="p-8 text-center font-bold">Checking permissions...</div>;
 
   if (!isWebmaster) {
     return (

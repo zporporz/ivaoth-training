@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getRequestSession } from "../../../../../lib/serverSession";
+import { isWebmaster } from "../../../../../lib/serverDataAccess";
 
 const IVAO_TOKEN_URL = "https://api.ivao.aero/v2/oauth/token";
 const IVAO_USER_URL = "https://api.ivao.aero/v2/users";
@@ -121,7 +122,7 @@ function normalizeUserPayload(payload) {
 
 export async function GET(request, { params }) {
   const loginSession = getRequestSession(request);
-  if (!loginSession?.hasTrainingAccess) {
+  if (!loginSession?.hasTrainingAccess && !(await isWebmaster(loginSession))) {
     return NextResponse.json(
       { error: "Training staff access required" },
       { status: 403 },

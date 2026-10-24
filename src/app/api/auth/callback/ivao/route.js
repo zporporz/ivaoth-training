@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { encodeSession } from "../../../../../lib/serverSession";
 import { isCoreWebmasterPosition } from "../../../../../lib/coreWebmasterAccess";
+import { getIvaoCorePosition } from "../../../../../lib/ivaoCorePosition";
 
 const IVAO_TOKEN_URL = "https://api.ivao.aero/v2/oauth/token";
 const IVAO_USERINFO_URL = "https://api.ivao.aero/v2/users/me";
@@ -187,7 +188,9 @@ export async function GET(request) {
   const trainingStaffPosition =
     visibleStaffPositions.map(getStaffPositionName).filter(Boolean).join(", ") || null;
 
-  const staffPositions = allStaffPositions.map(getStaffPositionName).filter(Boolean);
+  const staffPositions = allStaffPositions
+    .map((position) => getIvaoCorePosition(position) || getStaffPositionName(position))
+    .filter(Boolean);
   const hasTrainingAccess = trainingStaffPositions.length > 0 || staffPositions.some(isCoreWebmasterPosition);
   const displayName = getFullName(user);
 

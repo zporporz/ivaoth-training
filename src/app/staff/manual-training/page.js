@@ -16,7 +16,7 @@ import {
   numericInputToZulu,
   timeToNumericInput,
 } from "../../../lib/staffSessions";
-import { hasCoreWebmasterAccess } from "../../../lib/coreWebmasterAccess";
+import { useWebmasterAccess } from "../../../lib/useWebmasterAccess";
 import programs from "../../../data/programs";
 import sessionTypes from "../../../data/sessionTypes";
 
@@ -42,7 +42,7 @@ function ManualTrainingManager() {
   const [traineeLookupStatus, setTraineeLookupStatus] = useState("idle");
   const [trainerLookupStatus, setTrainerLookupStatus] = useState("idle");
 
-  const isCoreOwner = hasCoreWebmasterAccess(session);
+  const { isWebmaster, loading: accessLoading } = useWebmasterAccess(session);
 
   function updateForm(field, value) {
     setForm((prev) => ({
@@ -53,11 +53,11 @@ function ManualTrainingManager() {
   }
 
   useEffect(() => {
-    if (!isCoreOwner) return;
+    if (!isWebmaster) return;
     return onSnapshot(collection(db, "trainingSessions"), (snapshot) => {
       setSessions(snapshot.docs.map((item) => item.data()));
     });
-  }, [isCoreOwner]);
+  }, [isWebmaster]);
 
   useEffect(() => {
     const traineeVid = form.traineeVid.trim();
@@ -144,7 +144,7 @@ function ManualTrainingManager() {
   }, [form.trainerVid]);
 
   async function handlePublish() {
-    if (!isCoreOwner) return;
+    if (!isWebmaster) return;
 
     if (
       !form.date ||
@@ -187,7 +187,9 @@ function ManualTrainingManager() {
     alert("Manual training session published.");
   }
 
-  if (!isCoreOwner) {
+  if (accessLoading) return <div className="p-8 text-center font-bold">Checking permissions...</div>;
+
+  if (!isWebmaster) {
     return (
       <main className="relative z-10 min-h-screen px-4 py-4 sm:px-6 sm:py-6">
         <Navbar />
@@ -196,11 +198,11 @@ function ManualTrainingManager() {
           <Card>
             <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">restricted access</div>
             <h1 className="mt-3 text-4xl font-black tracking-[-0.04em]">
-              <span className="font-normal italic text-[#4b4b48]">Core</span> webmaster only
+              <span className="font-normal italic text-[#4b4b48]">Webmaster</span> access only
               <span className="text-[#ff5a1f]">.</span>
             </h1>
             <div className="mt-5 text-base font-semibold text-[#4b4b48]">
-              Core webmaster or TH-TC / TH-TAC / TH-DIR / TH-ADIR access is required to add training for another trainer.
+              Webmaster access is required to add training for another trainer.
             </div>
           </Card>
         </section>

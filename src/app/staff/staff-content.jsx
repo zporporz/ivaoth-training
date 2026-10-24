@@ -9,6 +9,7 @@ import TeachingSchedule from "../../components/staff/TeachingSchedule";
 import TraineeHistoryPanel from "../../components/staff/TraineeHistoryPanel";
 import Card from "../../components/ui/Card";
 import useTrainingSessions, { trainerLabel } from "../../hooks/useTrainingSessions";
+import { useWebmasterAccess } from "../../lib/useWebmasterAccess";
 import {
   canManageDocs,
   canManageStaffList,
@@ -95,9 +96,10 @@ export default function OriginalStaffPage() {
     cancelEdit,
   } = useTrainingSessions();
 
+  const { isWebmaster } = useWebmasterAccess(loginSession);
   const canOpenWebmasters = canManageWebmasters(loginSession);
-  const canOpenManualTraining = canManualAddTraining(loginSession, canOpenWebmasters);
-  const canOpenStaffList = canManageStaffList(loginSession, canOpenWebmasters);
+  const canOpenManualTraining = canManualAddTraining(loginSession, isWebmaster);
+  const canOpenStaffList = canManageStaffList(loginSession, isWebmaster);
   const canOpenDocsManager = canManageDocs(loginSession);
   const mySessions = loginSession?.vid
     ? sessions.filter(
@@ -185,7 +187,7 @@ export default function OriginalStaffPage() {
                 <span className="font-normal italic text-[#8b8a84]">core/</span>management
               </div>
               <div className="mt-2 text-sm font-semibold text-[#4b4b48]">
-                Visible only to accounts with core webmaster permission.
+                Visible only to accounts with webmaster permission.
               </div>
             </div>
 

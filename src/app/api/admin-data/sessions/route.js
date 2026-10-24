@@ -4,7 +4,7 @@ import { getAdminDb } from "../../../../lib/firebaseAdmin";
 import {
   cleanString,
   errorResponse,
-  requireCoreWebmaster,
+  requireWebmaster,
   requireTrainingStaff,
   withTimestamps,
 } from "../../../../lib/serverDataAccess";
@@ -50,7 +50,7 @@ export async function POST(request) {
     const body = await request.json();
     const manual = body?.manual === true;
     const loginSession = manual
-      ? requireCoreWebmaster(request)
+      ? await requireWebmaster(request)
       : requireTrainingStaff(request);
 
     if (!loginSession) return errorResponse("Access denied", 403);

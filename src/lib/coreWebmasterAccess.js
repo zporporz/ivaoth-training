@@ -9,6 +9,10 @@ const CORE_POSITIONS = new Set([
   "TH-TAC",
   "TH-DIR",
   "TH-ADIR",
+  "TH-TRAINING COORDINATOR",
+  "TH-TRAINING ASSISTANT COORDINATOR",
+  "TH-DIRECTOR",
+  "TH-ASSISTANT DIRECTOR",
   "TH-DIVISION DIRECTOR",
   "TH-DIVISION ASSISTANT DIRECTOR",
   "TH-DIVISION TRAINING COORDINATOR",
@@ -24,8 +28,9 @@ export function hasCoreWebmasterAccess(session) {
   if (isCoreWebmasterVid(session.vid)) return true;
   if (!session.hasTrainingAccess) return false;
 
-  const positions = Array.isArray(session.staffPositions)
-    ? session.staffPositions
-    : String(session.trainingStaffPosition || "").split(",");
+  const positions = [
+    ...(Array.isArray(session.staffPositions) ? session.staffPositions : []),
+    ...String(session.trainingStaffPosition || "").split(","),
+  ];
   return positions.some(isCoreWebmasterPosition);
 }

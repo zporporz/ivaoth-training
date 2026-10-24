@@ -30,6 +30,11 @@ export async function isWebmaster(session) {
   return snapshot.exists && snapshot.data()?.active !== false;
 }
 
+export async function requireWebmaster(request) {
+  const session = getRequestSession(request);
+  return (await isWebmaster(session)) ? session : null;
+}
+
 export function withTimestamps(payload, creating = false) {
   const data = {
     ...payload,

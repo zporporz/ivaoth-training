@@ -6,7 +6,7 @@ import {
   cleanNumber,
   cleanString,
   errorResponse,
-  requireCoreWebmaster,
+  requireWebmaster,
   withTimestamps,
 } from "../../../../lib/serverDataAccess";
 
@@ -25,7 +25,7 @@ function staffPayload(body) {
 
 export async function POST(request) {
   try {
-    if (!requireCoreWebmaster(request)) return errorResponse("Access denied", 403);
+    if (!(await requireWebmaster(request))) return errorResponse("Access denied", 403);
     const data = staffPayload(await request.json());
     if (!data.vid || !data.name) return errorResponse("VID and name are required");
 
