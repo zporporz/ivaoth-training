@@ -104,6 +104,7 @@ export default function ScheduleEntriesPanel({
   tab,
   setTab,
   currentUser,
+  isWebmaster = false,
   onEdit,
   onDelete,
   onClaim,
@@ -173,8 +174,8 @@ export default function ScheduleEntriesPanel({
                   key={s.firestoreId}
                   s={s}
                   completed={tab === "completed"}
-                  canEdit={canEditSession(currentUser, s)}
-                  canDelete={canDeleteSession(currentUser, s)}
+                  canEdit={canEditSession(currentUser, s, isWebmaster)}
+                  canDelete={canDeleteSession(currentUser, s, isWebmaster)}
                   canClaim={canClaimLegacySession(currentUser, s)}
                   onEdit={onEdit}
                   onDelete={onDelete}

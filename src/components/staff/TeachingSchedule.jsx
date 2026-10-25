@@ -74,6 +74,7 @@ export default function TeachingSchedule({
   tab,
   setTab,
   currentUser,
+  isWebmaster = false,
   onEdit,
   onDelete,
 }) {
@@ -151,8 +152,8 @@ export default function TeachingSchedule({
                 key={`mine-${s.firestoreId}`}
                 s={s}
                 completed={tab === "completed"}
-                canEdit={canEditSession(currentUser, s)}
-                canDelete={canDeleteSession(currentUser, s)}
+                canEdit={canEditSession(currentUser, s, isWebmaster)}
+                canDelete={canDeleteSession(currentUser, s, isWebmaster)}
                 onEdit={onEdit}
                 onDelete={onDelete}
               />

@@ -6,11 +6,12 @@ import {
   errorResponse,
   isWebmaster,
   requireTrainingStaff,
+  requireWebmaster,
   withTimestamps,
 } from "../../../../../lib/serverDataAccess";
 
 async function ownedSession(request, id) {
-  const loginSession = requireTrainingStaff(request);
+  const loginSession = requireTrainingStaff(request) || await requireWebmaster(request);
   if (!loginSession) return {};
 
   const reference = getAdminDb().collection("trainingSessions").doc(id);
@@ -35,6 +36,7 @@ export async function PATCH(request, { params }) {
     const body = await request.json();
 
     if (body.action === "claim") {
+      if (!access.loginSession.hasTrainingAccess) return errorResponse("Access denied", 403);
       if (access.data.trainerVid) return errorResponse("Session is already claimed", 409);
 
       await access.reference.update(

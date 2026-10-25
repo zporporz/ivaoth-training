@@ -19,6 +19,7 @@ import {
 } from "../lib/permissions";
 import { isValidZuluTime } from "../lib/staffSessions";
 import { findKnownTrainee } from "../lib/traineeHistory";
+import { useWebmasterAccess } from "../lib/useWebmasterAccess";
 
 export const emptyTrainingSessionForm = {
   date: "",
@@ -59,6 +60,7 @@ export default function useTrainingSessions() {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(emptyTrainingSessionForm);
   const loginSession = useClientSession();
+  const { isWebmaster } = useWebmasterAccess(loginSession);
   const [traineeLookupStatus, setTraineeLookupStatus] = useState("idle");
   const [submitStatus, setSubmitStatus] = useState("idle");
   const [submitMessage, setSubmitMessage] = useState("");
@@ -169,7 +171,7 @@ export default function useTrainingSessions() {
 
     const editingSession = sessions.find((session) => session.firestoreId === editingId);
 
-    if (editingId && !canEditSession(loginSession, editingSession || {})) {
+    if (editingId && !canEditSession(loginSession, editingSession || {}, isWebmaster)) {
       setSubmitStatus("error");
       setSubmitMessage("แก้ไขได้เฉพาะ session ที่คุณเป็นคนสอนเท่านั้น");
       return;
@@ -244,18 +246,22 @@ export default function useTrainingSessions() {
   }
 
   async function deleteSession(session) {
-    if (!canDeleteSession(loginSession, session)) {
+    if (!canDeleteSession(loginSession, session, isWebmaster)) {
       alert("ลบได้เฉพาะ session ที่คุณเป็นคนสอนเท่านั้น");
       return;
     }
 
-    await adminDataRequest(`/sessions/${session.firestoreId}`, {
-      method: "DELETE",
-    });
+    try {
+      await adminDataRequest(`/sessions/${session.firestoreId}`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      alert(error.message || "ลบ session ไม่สำเร็จ ลองใหม่อีกครั้ง");
+    }
   }
 
   function editSession(session) {
-    if (!canEditSession(loginSession, session)) {
+    if (!canEditSession(loginSession, session, isWebmaster)) {
       alert("แก้ไขได้เฉพาะ session ที่คุณเป็นคนสอนเท่านั้น");
       return;
     }
@@ -292,6 +298,7 @@ export default function useTrainingSessions() {
     loading,
     form,
     loginSession,
+    isWebmaster,
     traineeLookupStatus,
     submitStatus,
     submitMessage,

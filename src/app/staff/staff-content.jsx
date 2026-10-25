@@ -9,7 +9,6 @@ import TeachingSchedule from "../../components/staff/TeachingSchedule";
 import TraineeHistoryPanel from "../../components/staff/TraineeHistoryPanel";
 import Card from "../../components/ui/Card";
 import useTrainingSessions, { trainerLabel } from "../../hooks/useTrainingSessions";
-import { useWebmasterAccess } from "../../lib/useWebmasterAccess";
 import {
   canManageDocs,
   canManageStaffList,
@@ -84,6 +83,7 @@ export default function OriginalStaffPage() {
     loading,
     form,
     loginSession,
+    isWebmaster,
     traineeLookupStatus,
     submitStatus,
     submitMessage,
@@ -96,7 +96,6 @@ export default function OriginalStaffPage() {
     cancelEdit,
   } = useTrainingSessions();
 
-  const { isWebmaster } = useWebmasterAccess(loginSession);
   const canOpenWebmasters = canManageWebmasters(loginSession);
   const canOpenManualTraining = canManualAddTraining(loginSession, isWebmaster);
   const canOpenStaffList = canManageStaffList(loginSession, isWebmaster);
@@ -227,6 +226,7 @@ export default function OriginalStaffPage() {
             tab={teachingTab}
             setTab={setTeachingTab}
             currentUser={loginSession}
+            isWebmaster={isWebmaster}
             onEdit={handleEditSession}
             onDelete={deleteSession}
           />
@@ -256,6 +256,7 @@ export default function OriginalStaffPage() {
               tab={entriesTab}
               setTab={setEntriesTab}
               currentUser={loginSession}
+              isWebmaster={isWebmaster}
               onEdit={handleEditSession}
               onDelete={deleteSession}
               onClaim={claimSession}
