@@ -41,10 +41,12 @@ export function canCreateSession(user) {
 }
 
 export function canClaimLegacySession(user, session) {
+  if (session?.source === "thtraining") return false;
   return isTrainingStaff(user) && !session?.trainerVid;
 }
 
 export function canEditSession(user, session, isWebmaster = false) {
+  if (session?.source === "thtraining") return false;
   if (!user?.vid || !session) return false;
   return isWebmasterUser(user, isWebmaster) || String(session.trainerVid || "") === vidOf(user);
 }

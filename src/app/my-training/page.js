@@ -7,6 +7,7 @@ import Navbar from "../../components/Navbar";
 import Card from "../../components/ui/Card";
 import { useClientSession } from "../../lib/authSession";
 import { db } from "../../lib/firebase";
+import usePartnerSchedules from "../../hooks/usePartnerSchedules";
 
 function sessionToDate(session) {
   const rawDate = String(session?.date || "").trim();
@@ -78,7 +79,8 @@ function TrainingSessionCard({ item, mode }) {
 
 export default function MyTrainingPage() {
   const session = useClientSession();
-  const [allSessions, setAllSessions] = useState([]);
+  const [localSessions, setAllSessions] = useState([]);
+  const { sessions: allSessions, partnerError } = usePartnerSchedules(localSessions);
   const [activeTab, setActiveTab] = useState("upcoming");
 
   useEffect(() => {
@@ -158,6 +160,7 @@ export default function MyTrainingPage() {
       <Navbar />
 
       <section className="mx-auto max-w-[1480px] py-6 sm:py-10">
+        {partnerError && <p role="status" className="mb-4 text-sm font-bold text-amber-700">Official schedules could not refresh. Some entries may be out of date.</p>}
         <div className="mb-8">
           <div className="text-xs font-black uppercase tracking-wide text-[#8b8a84]">
             trainee portal / personal training dashboard

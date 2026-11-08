@@ -11,6 +11,7 @@ import UpNext from "../components/UpNext";
 
 import programs from "../data/programs";
 import { db } from "../lib/firebase";
+import usePartnerSchedules from "../hooks/usePartnerSchedules";
 import { useClientSession } from "../lib/authSession";
 import { ArrowUpRight } from "lucide-react";
 
@@ -77,7 +78,8 @@ function buildSessionList(sessions, mode = "upcoming") {
 }
 
 export default function Home() {
-  const [dbSessions, setDbSessions] = useState([]);
+  const [localSessions, setDbSessions] = useState([]);
+  const { sessions: dbSessions, partnerError } = usePartnerSchedules(localSessions);
   const [activeGroup, setActiveGroup] = useState("ATC");
   const session = useClientSession();
 
@@ -116,6 +118,7 @@ const pilotCount = dbSessions.filter((s) => {
     <main className="relative z-10 min-h-screen px-4 py-4 sm:px-6 sm:py-6">
       <Navbar />
       <TrainingReminder sessions={dbSessions} />
+      {partnerError && <p role="status" className="mx-auto mt-4 max-w-[1480px] text-sm font-bold text-amber-700">Official schedules could not refresh. Some entries may be out of date.</p>}
 
       <section className="mx-auto max-w-[1480px] py-6 sm:py-10">
         <div className="mb-7 flex flex-col items-start justify-between gap-5 lg:flex-row lg:gap-8">

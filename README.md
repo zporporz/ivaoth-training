@@ -574,3 +574,9 @@ the trusted server route is operational.
 5. Scheduled Discord reminders
 6. Administrative audit log
 7. Automated API permission and calendar lifecycle tests
+
+## Official Partner Schedules
+
+Official schedules can be displayed from the partner API. Configure the server-only
+`PARTNER_SCHEDULE_API_KEY` environment variable and redeploy. See
+[integration setup and limitations](docs/partner-schedules.md).

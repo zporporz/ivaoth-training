@@ -20,6 +20,7 @@ import {
 import { isValidZuluTime } from "../lib/staffSessions";
 import { findKnownTrainee } from "../lib/traineeHistory";
 import { useWebmasterAccess } from "../lib/useWebmasterAccess";
+import usePartnerSchedules from "./usePartnerSchedules";
 
 export const emptyTrainingSessionForm = {
   date: "",
@@ -55,7 +56,8 @@ export function trainerLabel(session) {
 }
 
 export default function useTrainingSessions() {
-  const [sessions, setSessions] = useState([]);
+  const [localSessions, setSessions] = useState([]);
+  const { sessions, partnerError } = usePartnerSchedules(localSessions);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(emptyTrainingSessionForm);
@@ -299,6 +301,7 @@ export default function useTrainingSessions() {
     form,
     loginSession,
     isWebmaster,
+    partnerError,
     traineeLookupStatus,
     submitStatus,
     submitMessage,

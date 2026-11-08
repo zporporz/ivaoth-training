@@ -84,6 +84,7 @@ export default function OriginalStaffPage() {
     form,
     loginSession,
     isWebmaster,
+    partnerError,
     traineeLookupStatus,
     submitStatus,
     submitMessage,
@@ -114,6 +115,7 @@ export default function OriginalStaffPage() {
   return (
     <main className="relative z-10 min-h-screen px-4 py-4 sm:px-6 sm:py-6">
       <Navbar />
+      {partnerError && <p role="status" className="mx-auto mt-4 max-w-[1480px] text-sm font-bold text-amber-700">Official schedules could not refresh. Some entries may be out of date.</p>}
 
       <section className="mx-auto max-w-[1480px] py-6 sm:py-10">
         <div className="mb-8">
