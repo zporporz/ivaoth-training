@@ -75,7 +75,7 @@ function ScheduleEntryRow({
             onClick={() => onDelete(s)}
             className="cursor-pointer rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-black text-red-600 hover:bg-red-100"
           >
-            delete
+            {s.source === "thtraining" ? "cancel" : "delete"}
           </button>
         )}
 

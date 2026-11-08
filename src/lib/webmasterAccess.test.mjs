@@ -151,3 +151,28 @@ test("revoked webmasters and unauthenticated users cannot mutate sessions", asyn
     assert.equal(writes.length, 0);
   }
 });
+
+test("imported history allows cancellation by owner or webmaster but blocks edits and deletion", async () => {
+  const imported = { ...assignedSession, source: "thtraining", importedAt: "2026-11-08", status: "Scheduled" };
+  for (const [vid, hasTrainingAccess, grants, permitted] of [
+    ["123456", true, {}, true],
+    ["660519", false, { "660519": { active: true } }, true],
+    ["555555", true, {}, false],
+  ]) {
+    const { route, client, writes } = await loadAccessModules(grants, { assigned: imported });
+    const session = { vid, hasTrainingAccess };
+    const isWebmaster = vid === "660519";
+    assert.equal(client.canEditSession(session, imported, isWebmaster), false);
+    assert.equal(client.canDeleteSession(session, imported, isWebmaster), permitted);
+    assert.equal(client.canDeleteSession(session, { ...imported, status: "Cancelled" }, isWebmaster), false);
+    const params = { params: Promise.resolve({ id: "assigned" }) };
+    assert.equal((await route.PATCH({ session, json: async () => editPayload }, params)).status, permitted ? 409 : 403);
+    assert.equal((await route.DELETE({ session }, params)).status, permitted ? 409 : 403);
+    assert.equal((await route.PATCH({ session, json: async () => ({ action: "cancel" }) }, params)).status, permitted ? 200 : 403);
+    assert.equal(writes.length, permitted ? 1 : 0);
+    if (permitted) {
+      assert.equal(writes[0].data.status, "Cancelled");
+      assert.equal(writes[0].data.localCancelled, true);
+    }
+  }
+});

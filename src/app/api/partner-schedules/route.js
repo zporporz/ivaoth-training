@@ -1,13 +1,16 @@
 import { unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
 import { fetchPartnerEvents, normalizePartnerEvents } from "../../../lib/partnerSchedules";
+import { getAdminDb } from "../../../lib/firebaseAdmin";
+import { syncPartnerSchedules } from "../../../lib/syncPartnerSchedules";
 
 export const runtime = "nodejs";
 
 const readSchedules = unstable_cache(async () => {
   const events = await fetchPartnerEvents(process.env.PARTNER_SCHEDULE_API_KEY);
-  return { sessions: normalizePartnerEvents(events), fetchedAt: new Date().toISOString() };
-}, ["thtraining-schedules-v3"], { revalidate: 300 });
+  const sync = await syncPartnerSchedules(getAdminDb(), normalizePartnerEvents(events));
+  return { sessions: [], persisted: true, sync, fetchedAt: new Date().toISOString() };
+}, ["thtraining-schedules-persisted-v1"], { revalidate: 300 });
 
 export async function GET() {
   if (!process.env.PARTNER_SCHEDULE_API_KEY) {

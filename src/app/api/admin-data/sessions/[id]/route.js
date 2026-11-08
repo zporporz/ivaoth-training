@@ -35,6 +35,18 @@ export async function PATCH(request, { params }) {
 
     const body = await request.json();
 
+    if (access.data.source === "thtraining") {
+      if (!access.allowed) return errorResponse("Access denied", 403);
+      if (body.action !== "cancel") return errorResponse("Edit imported sessions on the source website", 409);
+      if (access.data.status !== "Cancelled") {
+        await access.reference.update(withTimestamps({
+          status: "Cancelled", localCancelled: true,
+          cancelledBy: String(access.loginSession.vid), cancelledAt: new Date().toISOString(),
+        }));
+      }
+      return NextResponse.json({ ok: true });
+    }
+
     if (body.action === "claim") {
       if (!access.loginSession.hasTrainingAccess) return errorResponse("Access denied", 403);
       if (access.data.trainerVid) return errorResponse("Session is already claimed", 409);
@@ -103,6 +115,7 @@ export async function DELETE(request, { params }) {
     if (access.missing) return errorResponse("Training session not found", 404);
     if (!access.allowed) return errorResponse("Access denied", 403);
 
+    if (access.data.source === "thtraining") return errorResponse("Cancel imported sessions instead of deleting history", 409);
     await access.reference.delete();
     return NextResponse.json({ ok: true });
   } catch (error) {

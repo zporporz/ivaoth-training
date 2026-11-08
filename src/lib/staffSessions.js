@@ -54,10 +54,10 @@ export function splitSessionsByTime(items) {
 
   return {
     upcoming: withDates
-      .filter((session) => session.sessionDate >= now)
+      .filter((session) => session.status !== "Cancelled" && session.sessionDate >= now)
       .sort((a, b) => a.sessionDate - b.sessionDate),
     completed: withDates
-      .filter((session) => session.sessionDate < now)
+      .filter((session) => session.status === "Cancelled" || session.sessionDate < now)
       .sort((a, b) => b.sessionDate - a.sessionDate),
   };
 }

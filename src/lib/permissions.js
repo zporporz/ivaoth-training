@@ -51,4 +51,10 @@ export function canEditSession(user, session, isWebmaster = false) {
   return isWebmasterUser(user, isWebmaster) || String(session.trainerVid || "") === vidOf(user);
 }
 
-export const canDeleteSession = canEditSession;
+export function canDeleteSession(user, session, isWebmaster = false) {
+  if (session?.source === "thtraining") {
+    return Boolean(user?.vid && session.importedAt && session.status !== "Cancelled" &&
+      (isWebmasterUser(user, isWebmaster) || String(session.trainerVid || "") === vidOf(user)));
+  }
+  return canEditSession(user, session, isWebmaster);
+}

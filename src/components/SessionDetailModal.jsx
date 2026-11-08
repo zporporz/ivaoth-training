@@ -60,7 +60,7 @@ export default function SessionDetailModal({ session, program, onClose }) {
         </div>
 
         <div className="space-y-5 px-5 py-6 sm:px-8 sm:py-7">
-          {session.source === "thtraining" && <p className="text-sm font-bold text-[#4b4b48]">Official portal session. Changes are managed on the source website.</p>}
+          {session.source === "thtraining" && <p className="text-sm font-bold text-[#4b4b48]">Imported session saved in training history. Edit details on the source website; cancel through Staff Console.</p>}
           {session.secondaryTrainerName && <DetailItem label={isExam ? "Second examiner" : "Assistant trainer"} value={`${session.secondaryTrainerName}${session.secondaryTrainerVid ? ` (${session.secondaryTrainerVid})` : ""}`} />}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <DetailItem label="Status" value={session.status} />

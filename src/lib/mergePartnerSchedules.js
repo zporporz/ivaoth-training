@@ -2,7 +2,7 @@ function normalized(value) {
   return String(value || "").trim().replace(/\s+/g, " ").toUpperCase();
 }
 
-function sessionKey(session) {
+export function sessionKey(session) {
   const date = normalized(session.date);
   const time = normalized(session.time).replace(/[:Z]/g, "");
   const program = normalized(session.program);
@@ -18,8 +18,15 @@ function sessionKey(session) {
 }
 
 export function mergePartnerSchedules(localSessions, partnerSessions) {
-  const localKeys = new Set(localSessions.map(sessionKey).filter(Boolean));
-  return [...localSessions, ...partnerSessions.filter((session) => {
+  const nativeSessions = localSessions.filter((session) => session.source !== "thtraining");
+  const imported = [...localSessions.filter((session) => session.source === "thtraining"), ...partnerSessions];
+  const localKeys = new Set(nativeSessions.map(sessionKey).filter(Boolean));
+  const seenIds = new Set();
+  return [...nativeSessions, ...imported.filter((session) => {
+    if (session.duplicateOf) return false;
+    const id = session.firestoreId || session.id;
+    if (id && seenIds.has(id)) return false;
+    if (id) seenIds.add(id);
     const key = sessionKey(session);
     return !key || !localKeys.has(key);
   })];

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { mergePartnerSchedules } from "../lib/mergePartnerSchedules";
 
-export default function usePartnerSchedules(localSessions) {
+export default function usePartnerSchedules(localSessions, { includeCancelled = false } = {}) {
   const [partnerSessions, setPartnerSessions] = useState([]);
   const [error, setError] = useState(false);
   useEffect(() => {
@@ -17,7 +17,7 @@ export default function usePartnerSchedules(localSessions) {
         if (!response.ok) throw new Error("Partner schedules unavailable");
         const data = await response.json();
         if (!Array.isArray(data.sessions)) throw new Error("Invalid partner schedules");
-        setPartnerSessions(data.sessions);
+        setPartnerSessions(data.persisted ? [] : data.sessions);
         setError(false);
       } catch (failure) {
         if (failure.name !== "AbortError") setError(true);
@@ -34,6 +34,7 @@ export default function usePartnerSchedules(localSessions) {
       window.removeEventListener("focus", refresh);
     };
   }, []);
-  const sessions = useMemo(() => mergePartnerSchedules(localSessions, partnerSessions), [localSessions, partnerSessions]);
+  const sessions = useMemo(() => mergePartnerSchedules(localSessions, partnerSessions)
+    .filter((session) => includeCancelled || session.status !== "Cancelled"), [localSessions, partnerSessions, includeCancelled]);
   return { sessions, partnerError: error };
 }

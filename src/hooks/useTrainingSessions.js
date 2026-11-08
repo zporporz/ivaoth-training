@@ -57,7 +57,7 @@ export function trainerLabel(session) {
 
 export default function useTrainingSessions() {
   const [localSessions, setSessions] = useState([]);
-  const { sessions, partnerError } = usePartnerSchedules(localSessions);
+  const { sessions, partnerError } = usePartnerSchedules(localSessions, { includeCancelled: true });
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(emptyTrainingSessionForm);
@@ -255,7 +255,8 @@ export default function useTrainingSessions() {
 
     try {
       await adminDataRequest(`/sessions/${session.firestoreId}`, {
-        method: "DELETE",
+        method: session.source === "thtraining" ? "PATCH" : "DELETE",
+        ...(session.source === "thtraining" ? { body: JSON.stringify({ action: "cancel" }) } : {}),
       });
     } catch (error) {
       alert(error.message || "ลบ session ไม่สำเร็จ ลองใหม่อีกครั้ง");
