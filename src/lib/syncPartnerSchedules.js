@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { sessionKey } from "./mergePartnerSchedules.js";
+import { queueTrainingNotification } from "./discordTrainingOutbox.js";
 
 export function partnerFingerprint(session) {
   return createHash("sha256").update(JSON.stringify(session)).digest("hex");
@@ -66,6 +67,9 @@ export async function syncPartnerSchedules(db, sessions, now = new Date().toISOS
         updatedAt: now,
       }, { merge: true });
       result[existing ? "updated" : "created"]++;
+      if (!existing) {
+        queueTrainingNotification(transaction, db, `new-${session.firestoreId}`, "new", session);
+      }
     });
     return result;
   });

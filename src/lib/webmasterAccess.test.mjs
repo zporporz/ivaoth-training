@@ -6,6 +6,7 @@ import { SourceTextModule, SyntheticModule } from "node:vm";
 async function loadAccessModules(records = {}, trainingSessions = {}) {
   const lookups = [];
   const writes = [];
+  const notifications = [];
   const core = new SourceTextModule(await readFile(new URL("./coreWebmasterAccess.js", import.meta.url), "utf8"));
   await core.link(() => { throw new Error("Unexpected core dependency"); });
   await core.evaluate();
@@ -14,10 +15,14 @@ async function loadAccessModules(records = {}, trainingSessions = {}) {
       if (name === "trainingSessions") {
         return { doc(id) {
           return {
+            id,
             async get() {
               return { exists: Object.hasOwn(trainingSessions, id), data: () => trainingSessions[id] };
             },
-            async update(data) { writes.push({ method: "PATCH", id, data }); },
+            async update(data) {
+              trainingSessions[id] = { ...trainingSessions[id], ...data };
+              writes.push({ method: "PATCH", id, data });
+            },
             async delete() { writes.push({ method: "DELETE", id }); },
           };
         } };
@@ -30,8 +35,22 @@ async function loadAccessModules(records = {}, trainingSessions = {}) {
         } };
       } };
     },
+    async runTransaction(callback) {
+      return callback({
+        get: (ref) => ref.get(),
+        update: (ref, data) => ref.update(data),
+        delete: (ref) => ref.delete(),
+        set: (ref, data) => notifications.push({ ref, ...data }),
+      });
+    },
   };
   const dependencies = {
+    "./discordTrainingOutbox": {
+      queueTrainingNotification: (transaction, db, eventId, action, session) => {
+        transaction.set({ id: eventId }, { action, session });
+      },
+      tryFlushTrainingNotifications: async () => {},
+    },
     "@google-cloud/firestore": { FieldValue: { serverTimestamp: () => "timestamp" } },
     "next/server": { NextResponse: { json: (body, options = {}) => ({ body, status: options.status || 200 }) } },
     "./firebaseAdmin": { getAdminDb: () => database },
@@ -56,14 +75,14 @@ async function loadAccessModules(records = {}, trainingSessions = {}) {
   const route = new SourceTextModule(await readFile(new URL("../app/api/admin-data/sessions/[id]/route.js", import.meta.url), "utf8"));
   await route.link((specifier) => {
     if (specifier.endsWith("/serverDataAccess")) return server;
-    const exports = dependencies[specifier.endsWith("/firebaseAdmin") ? "./firebaseAdmin" : specifier];
+    const exports = dependencies[specifier.endsWith("/firebaseAdmin") ? "./firebaseAdmin" : specifier.endsWith("/discordTrainingOutbox") ? "./discordTrainingOutbox" : specifier];
     if (!exports) throw new Error(`Unexpected route dependency: ${specifier}`);
     return new SyntheticModule(Object.keys(exports), function () {
       for (const [name, value] of Object.entries(exports)) this.setExport(name, value);
     });
   });
   await route.evaluate();
-  return { server: server.namespace, client: client.namespace, route: route.namespace, lookups, writes };
+  return { server: server.namespace, client: client.namespace, route: route.namespace, lookups, writes, notifications };
 }
 
 test("registered webmaster can use tools without training role, but cannot delegate core access", async () => {
@@ -107,7 +126,7 @@ const editPayload = {
 };
 
 test("registered webmaster without training role can edit and delete another trainer's session", async () => {
-  const { route, client, server, writes } = await loadAccessModules(
+  const { route, client, server, writes, notifications } = await loadAccessModules(
     { "660519": { active: true } }, { assigned: assignedSession },
   );
   const session = { vid: "660519", hasTrainingAccess: false };
@@ -122,6 +141,8 @@ test("registered webmaster without training role can edit and delete another tra
   assert.equal(updated.body.session.trainerName, "Original trainer");
   assert.equal((await route.DELETE(request, params)).status, 200);
   assert.deepEqual(writes.map(({ method }) => method), ["PATCH", "DELETE"]);
+  assert.equal(notifications[0].action, "deleted");
+  assert.equal(notifications[0].session.trainerName, "Original trainer");
 });
 
 test("ordinary trainers can change their own sessions but not another trainer's", async () => {
@@ -159,7 +180,7 @@ test("imported history allows cancellation by owner or webmaster but blocks edit
     ["660519", false, { "660519": { active: true } }, true],
     ["555555", true, {}, false],
   ]) {
-    const { route, client, writes } = await loadAccessModules(grants, { assigned: imported });
+    const { route, client, writes, notifications } = await loadAccessModules(grants, { assigned: imported });
     const session = { vid, hasTrainingAccess };
     const isWebmaster = vid === "660519";
     assert.equal(client.canEditSession(session, imported, isWebmaster), false);
@@ -173,6 +194,12 @@ test("imported history allows cancellation by owner or webmaster but blocks edit
     if (permitted) {
       assert.equal(writes[0].data.status, "Cancelled");
       assert.equal(writes[0].data.localCancelled, true);
+      assert.equal(notifications.length, 1);
+      assert.equal(notifications[0].action, "cancelled");
+      await route.PATCH({ session, json: async () => ({ action: "cancel" }) }, params);
+      assert.equal(notifications.length, 1);
+    } else {
+      assert.equal(notifications.length, 0);
     }
   }
 });

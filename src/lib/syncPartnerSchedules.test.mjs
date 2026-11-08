@@ -11,7 +11,7 @@ const session = {
 };
 
 function fakeDb() {
-  const collections = { trainingSessions: new Map(), partnerScheduleLinks: new Map() };
+  const collections = { trainingSessions: new Map(), partnerScheduleLinks: new Map(), discordTrainingOutbox: new Map() };
   const writes = [];
   const snapshot = (name, id) => ({ id, exists: collections[name].has(id), data: () => collections[name].get(id) });
   return {
@@ -46,6 +46,7 @@ function fakeDb() {
 test("imports once, repeated reads do not write, changed data updates same document", async () => {
   const db = fakeDb();
   assert.equal((await syncPartnerSchedules(db, [session], "first")).created, 1);
+  assert.equal(db.collections.discordTrainingOutbox.size, 1);
   const writes = db.writes.length;
   assert.equal((await syncPartnerSchedules(db, [session], "second")).unchanged, 1);
   assert.equal(db.writes.length, writes);
@@ -54,6 +55,7 @@ test("imports once, repeated reads do not write, changed data updates same docum
   const saved = db.collections.trainingSessions.get(session.id);
   assert.equal(saved.time, "1400Z");
   assert.equal(saved.importedAt, "first");
+  assert.equal(db.collections.discordTrainingOutbox.size, 1);
 });
 
 test("disappeared sessions remain stored as history", async () => {
@@ -71,6 +73,7 @@ test("local duplicate wins and persistent link prevents reimport when upstream r
   await syncPartnerSchedules(db, [{ ...session, time: "1800Z" }]);
   assert.equal(db.collections.trainingSessions.size, 1);
   assert.deepEqual(db.collections.trainingSessions.get("local"), native);
+  assert.equal(db.collections.discordTrainingOutbox.size, 0);
 });
 
 test("local cancellation survives identical and changed upstream data", async () => {

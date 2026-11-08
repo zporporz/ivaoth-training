@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getAdminDb } from "../../../../../lib/firebaseAdmin";
+import { queueTrainingNotification, tryFlushTrainingNotifications } from "../../../../../lib/discordTrainingOutbox";
 import {
   cleanString,
   errorResponse,
@@ -38,12 +39,18 @@ export async function PATCH(request, { params }) {
     if (access.data.source === "thtraining") {
       if (!access.allowed) return errorResponse("Access denied", 403);
       if (body.action !== "cancel") return errorResponse("Edit imported sessions on the source website", 409);
-      if (access.data.status !== "Cancelled") {
-        await access.reference.update(withTimestamps({
+      const db = getAdminDb();
+      await db.runTransaction(async (transaction) => {
+        const snapshot = await transaction.get(access.reference);
+        if (!snapshot.exists || snapshot.data().status === "Cancelled") return;
+        const data = snapshot.data();
+        transaction.update(access.reference, withTimestamps({
           status: "Cancelled", localCancelled: true,
           cancelledBy: String(access.loginSession.vid), cancelledAt: new Date().toISOString(),
         }));
-      }
+        queueTrainingNotification(transaction, db, `cancelled-${id}`, "cancelled", { ...data, status: "Cancelled" });
+      });
+      await tryFlushTrainingNotifications(db);
       return NextResponse.json({ ok: true });
     }
 
@@ -116,7 +123,14 @@ export async function DELETE(request, { params }) {
     if (!access.allowed) return errorResponse("Access denied", 403);
 
     if (access.data.source === "thtraining") return errorResponse("Cancel imported sessions instead of deleting history", 409);
-    await access.reference.delete();
+    const db = getAdminDb();
+    await db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(access.reference);
+      if (!snapshot.exists) return;
+      transaction.delete(access.reference);
+      queueTrainingNotification(transaction, db, `deleted-${id}`, "deleted", snapshot.data());
+    });
+    await tryFlushTrainingNotifications(db);
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Delete training session failed", error);

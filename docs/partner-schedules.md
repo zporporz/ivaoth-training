@@ -50,7 +50,17 @@ If the host changes its challenge, the feed fails with a generic 502 response.
   local cancellation. Users cancel locally under the agreed workflow.
 - Feed failures leave all saved history available through Firestore. The sync
   uses a transaction so cancellations and concurrent syncs cannot overwrite each other.
-- No Discord messages are sent for feed reads.
+- Newly imported sessions queue a Discord notification in the same transaction.
+  Unchanged sessions, updates and local duplicates do not create a new-session alert.
+  Local session deletion and imported-session cancellation also queue distinct alerts.
+  The private `discordTrainingOutbox` uses the existing server webhook variable;
+  failed sends remain pending and retry on later sync requests or local removals.
+  Queue processing requires traffic (there is no background cron). Up to 10 pending
+  messages are processed per pass, with a 60-second lease/backoff. Delivery is at
+  least once: a crash after Discord accepts a message but before acknowledgement
+  can cause a duplicate. Existing imports are not retrospectively announced.
+  Disappearance from the scheduled-only upstream feed is not treated as deletion,
+  so upstream deletion cannot trigger a reliable alert without an explicit event.
 
 ## Verify
 
