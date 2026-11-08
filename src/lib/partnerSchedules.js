@@ -2,6 +2,13 @@ import { createDecipheriv } from "node:crypto";
 
 export const PARTNER_SCHEDULE_URL = "https://thtraining.gt.tc/public/api/v1/schedules.php";
 
+const TRAINING_CATEGORIES = {
+  1: { label: "Official", type: "Official Practical" },
+  2: { label: "Unofficial", type: "Unofficial Practical" },
+  3: { label: "Mock-up", type: "Mock-up Practical Training" },
+  4: { label: "Recurrent", type: "Recurrent Training" },
+};
+
 export async function fetchPartnerEvents(apiKey, fetcher = fetch) {
   if (!apiKey) throw new Error("Partner API key is not configured");
   const headers = { "X-API-Key": apiKey, Accept: "application/json" };
@@ -47,14 +54,17 @@ export function normalizePartnerEvents(events) {
     const program = rating?.startsWith("AS") ? "ASx" : rating?.startsWith("FS") ? "FSx" : rating || (pilot ? "FSx" : "ASx");
     const exam = String(event.request_type).toLowerCase() === "exam";
     const theory = String(event.session_type).toLowerCase() === "theory";
-    const type = exam ? (theory ? "Theory Exam" : "Practical Exam") : theory ? "Theory Training" : "Practical Training";
+    const categoryCode = String(event.training_category ?? "").trim();
+    const category = Object.hasOwn(TRAINING_CATEGORIES, categoryCode) ? TRAINING_CATEGORIES[categoryCode] : null;
+    const type = exam ? (theory ? "Theory Exam" : "Practical Exam") : theory ? "Theory Training" : category?.type || "Practical Training (Unspecified)";
     sessions.set(id, {
       id, firestoreId: id, source: "thtraining", externalId: String(event.id),
       date: start.toISOString().slice(0, 10),
       time: start.toISOString().slice(11, 16).replace(":", "") + "Z",
       endsAt: event.ends_at || null, program, type,
-      status: exam ? "Exam" : "Scheduled",
-      position: String(event.position || event.apt_icao || ""),
+      status: exam ? "Exam" : !theory && categoryCode === "1" ? "Official" : "Scheduled",
+      trainingCategory: category?.label || "Unspecified",
+      position: String(event.atc_position || event.position || event.apt_icao || ""),
       topic, remarks: String(event.remarks || ""),
       traineeName: String(event.member_name || ""), traineeVid: String(event.member_vid || ""),
       trainerName: String(event.primary_staff?.name || ""),

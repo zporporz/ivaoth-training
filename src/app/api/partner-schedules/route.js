@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 const readSchedules = unstable_cache(async () => {
   const events = await fetchPartnerEvents(process.env.PARTNER_SCHEDULE_API_KEY);
   return { sessions: normalizePartnerEvents(events), fetchedAt: new Date().toISOString() };
-}, ["thtraining-schedules-v2"], { revalidate: 300 });
+}, ["thtraining-schedules-v3"], { revalidate: 300 });
 
 export async function GET() {
   if (!process.env.PARTNER_SCHEDULE_API_KEY) {

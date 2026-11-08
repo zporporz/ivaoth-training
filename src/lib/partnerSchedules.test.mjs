@@ -20,11 +20,42 @@ test("maps exam, neutral practical training, UTC date and staff without inventin
   assert.equal(exam.trainerVid, "600767");
   assert.equal(exam.secondaryTrainerVid, "660519");
   const [pilot] = normalizePartnerEvents([{ ...event, request_type: "training", role_type: "Pilot", topic_or_rating: "SPP Exam Training and Practice", starts_at: "2026-11-09T01:00:00+07:00" }]);
-  assert.equal(pilot.type, "Practical Training");
+  assert.equal(pilot.type, "Practical Training (Unspecified)");
+  assert.equal(pilot.trainingCategory, "Unspecified");
   assert.equal(pilot.status, "Scheduled");
   assert.equal(pilot.program, "SPP");
   assert.equal(pilot.date, "2026-11-08");
   assert.equal(pilot.time, "1800Z");
+});
+
+test("maps partner training categories, accepts numeric strings and reads ATC position", () => {
+  for (const [code, type, label] of [
+    [1, "Official Practical", "Official"],
+    [2, "Unofficial Practical", "Unofficial"],
+    [3, "Mock-up Practical Training", "Mock-up"],
+    [4, "Recurrent Training", "Recurrent"],
+  ]) {
+    for (const value of [code, String(code)]) {
+      const [session] = normalizePartnerEvents([{ ...event, request_type: "training", training_category: value, atc_position: "VTBD_TWR" }]);
+      assert.equal(session.type, type);
+      assert.equal(session.trainingCategory, label);
+      assert.equal(session.status, code === 1 ? "Official" : "Scheduled");
+      assert.equal(session.position, "VTBD_TWR");
+    }
+  }
+});
+
+test("missing and unknown categories stay unspecified while exams retain their type", () => {
+  for (const value of [undefined, null, "", " ", 0, 99, "constructor"]) {
+    const [session] = normalizePartnerEvents([{ ...event, request_type: "training", training_category: value }]);
+    assert.equal(session.type, "Practical Training (Unspecified)");
+    assert.equal(session.status, "Scheduled");
+  }
+  for (const code of [1, 2, 3, 4]) {
+    const [session] = normalizePartnerEvents([{ ...event, training_category: code }]);
+    assert.equal(session.type, "Practical Exam");
+    assert.equal(session.status, "Exam");
+  }
 });
 
 test("stable IDs replace duplicate events and cancellations are removed", () => {

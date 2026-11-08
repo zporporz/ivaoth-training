@@ -28,8 +28,11 @@ If the host changes its challenge, the feed fails with a generic 502 response.
 - External sessions are read only, including for webmasters; edit them upstream.
 - Dates and times are converted to UTC. Missing positions remain blank.
 - `request_type=exam` selects an exam; `session_type=theory` selects theory.
-  Other training practicals map to neutral Practical Training with Scheduled status.
-  The feed does not establish whether training is official or unofficial.
+  Practical training uses `training_category`: 1 Official Practical, 2 Unofficial
+  Practical, 3 Mock-up Practical Training, 4 Recurrent Training. Missing, null,
+  blank or unknown values map to Practical Training (Unspecified). Only category 1
+  practical training gets Official status. Exam type takes precedence over category.
+  Position uses `atc_position`, falling back to legacy `position` / `apt_icao`.
 - Rating is extracted from `topic_or_rating`, falling back to ASx/FSx when absent.
 - Explicit cancelled/canceled/deleted entries are hidden. A successful new feed
   replaces the previous feed, so disappeared entries are removed from the display.
