@@ -11,7 +11,7 @@ const event = {
   secondary_staff: { name: "Observer", member_vid: "660519" },
 };
 
-test("maps exam, official training, UTC date and staff without inventing missing position", () => {
+test("maps exam, neutral practical training, UTC date and staff without inventing missing position", () => {
   const [exam] = normalizePartnerEvents([event]);
   assert.equal(exam.type, "Practical Exam");
   assert.equal(exam.program, "ADC");
@@ -20,7 +20,8 @@ test("maps exam, official training, UTC date and staff without inventing missing
   assert.equal(exam.trainerVid, "600767");
   assert.equal(exam.secondaryTrainerVid, "660519");
   const [pilot] = normalizePartnerEvents([{ ...event, request_type: "training", role_type: "Pilot", topic_or_rating: "SPP Exam Training and Practice", starts_at: "2026-11-09T01:00:00+07:00" }]);
-  assert.equal(pilot.type, "Official Practical");
+  assert.equal(pilot.type, "Practical Training");
+  assert.equal(pilot.status, "Scheduled");
   assert.equal(pilot.program, "SPP");
   assert.equal(pilot.date, "2026-11-08");
   assert.equal(pilot.time, "1800Z");

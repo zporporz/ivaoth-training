@@ -47,13 +47,13 @@ export function normalizePartnerEvents(events) {
     const program = rating?.startsWith("AS") ? "ASx" : rating?.startsWith("FS") ? "FSx" : rating || (pilot ? "FSx" : "ASx");
     const exam = String(event.request_type).toLowerCase() === "exam";
     const theory = String(event.session_type).toLowerCase() === "theory";
-    const type = exam ? (theory ? "Theory Exam" : "Practical Exam") : theory ? "Theory Training" : "Official Practical";
+    const type = exam ? (theory ? "Theory Exam" : "Practical Exam") : theory ? "Theory Training" : "Practical Training";
     sessions.set(id, {
       id, firestoreId: id, source: "thtraining", externalId: String(event.id),
       date: start.toISOString().slice(0, 10),
       time: start.toISOString().slice(11, 16).replace(":", "") + "Z",
       endsAt: event.ends_at || null, program, type,
-      status: exam ? "Exam" : theory ? "Scheduled" : "Official",
+      status: exam ? "Exam" : "Scheduled",
       position: String(event.position || event.apt_icao || ""),
       topic, remarks: String(event.remarks || ""),
       traineeName: String(event.member_name || ""), traineeVid: String(event.member_vid || ""),

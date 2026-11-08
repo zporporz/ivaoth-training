@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { mergePartnerSchedules } from "../lib/mergePartnerSchedules";
 
 export default function usePartnerSchedules(localSessions) {
   const [partnerSessions, setPartnerSessions] = useState([]);
@@ -33,6 +34,6 @@ export default function usePartnerSchedules(localSessions) {
       window.removeEventListener("focus", refresh);
     };
   }, []);
-  const sessions = useMemo(() => [...localSessions, ...partnerSessions], [localSessions, partnerSessions]);
+  const sessions = useMemo(() => mergePartnerSchedules(localSessions, partnerSessions), [localSessions, partnerSessions]);
   return { sessions, partnerError: error };
 }

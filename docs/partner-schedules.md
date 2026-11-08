@@ -21,11 +21,15 @@ If the host changes its challenge, the feed fails with a generic 502 response.
 
 - Homepage/calendar, My Training and staff records merge the feed with Firestore.
 - External IDs are namespaced `partner-thtraining-<id>` and deduplicated per feed.
+- Local entries take priority when UTC date/time, program and trainee VID match
+  within the same training/exam and theory/practical category. Practical training
+  matches regardless of Official/Unofficial, position or trainer. Local data is
+  retained as-is; only the external copy is hidden from all merged views.
 - External sessions are read only, including for webmasters; edit them upstream.
 - Dates and times are converted to UTC. Missing positions remain blank.
 - `request_type=exam` selects an exam; `session_type=theory` selects theory.
-  Other training practicals map to Official Practical. Confirm this convention
-  with the partner before using it for unofficial training.
+  Other training practicals map to neutral Practical Training with Scheduled status.
+  The feed does not establish whether training is official or unofficial.
 - Rating is extracted from `topic_or_rating`, falling back to ASx/FSx when absent.
 - Explicit cancelled/canceled/deleted entries are hidden. A successful new feed
   replaces the previous feed, so disappeared entries are removed from the display.
@@ -34,8 +38,6 @@ If the host changes its challenge, the feed fails with a generic 502 response.
 - This is a live feed, not a historical import: if the partner drops completed
   sessions, those sessions also disappear from records. Persistent history needs
   a separate agreed retention/cancellation contract before adding DB sync.
-- Manually created local sessions are not automatically merged with similar
-  external sessions: different source IDs may refer to the same real session.
 - No Discord messages are sent for feed reads.
 
 ## Verify
